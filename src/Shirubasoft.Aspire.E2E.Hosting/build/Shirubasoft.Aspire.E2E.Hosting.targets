@@ -1,12 +1,76 @@
 <Project>
+  <Target Name="_ResolveSharedResourceProjectReferences" BeforeTargets="ResolveProjectReferences"
+          Condition="'@(SharedResourceReference)' != ''"
+          Outputs="%(SharedResourceReference.Identity)">
+
+    <Exec Command="aspire-e2e get-mode %(SharedResourceReference.Identity)"
+          ConsoleToMSBuild="true"
+          IgnoreExitCode="true"
+          StandardOutputImportance="low">
+      <Output TaskParameter="ConsoleOutput" PropertyName="_ResolvedMode" />
+      <Output TaskParameter="ExitCode" PropertyName="_ResolvedModeExit" />
+    </Exec>
+
+    <PropertyGroup>
+      <_ResolvedModeIsProject>$([System.String]::Equals($(_ResolvedMode), 'Project', System.StringComparison.OrdinalIgnoreCase))</_ResolvedModeIsProject>
+    </PropertyGroup>
+
+    <Exec Command="aspire-e2e get-project-path %(SharedResourceReference.Identity)"
+          ConsoleToMSBuild="true"
+          IgnoreExitCode="true"
+          StandardOutputImportance="low"
+          Condition="'$(_ResolvedModeIsProject)' == 'True'">
+      <Output TaskParameter="ConsoleOutput" PropertyName="_ResolvedProjectPath" />
+    </Exec>
+
+    <ItemGroup Condition="'$(_ResolvedModeExit)' == '0'">
+      <SharedResourceReference>
+        <Mode>$(_ResolvedMode)</Mode>
+        <ProjectPath Condition="'$(_ResolvedModeIsProject)' == 'True'">$(_ResolvedProjectPath)</ProjectPath>
+      </SharedResourceReference>
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(_ResolvedModeIsProject)' == 'True' AND '$(_ResolvedProjectPath)' != ''">
+      <ProjectReference Include="$(_ResolvedProjectPath)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="_BuildSharedResourceContainerImages" BeforeTargets="Build"
+          DependsOnTargets="_ResolveSharedResourceProjectReferences"
+          Condition="'@(SharedResourceReference)' != ''"
+          Outputs="%(SharedResourceReference.Identity)">
+
+    <Exec Command="aspire-e2e get-config %(SharedResourceReference.Identity) SkipImageBuild"
+          ConsoleToMSBuild="true"
+          IgnoreExitCode="true"
+          StandardOutputImportance="low"
+          Condition="'$([System.String]::Equals(%(SharedResourceReference.Mode), `Container`, System.StringComparison.OrdinalIgnoreCase))' == 'True'">
+      <Output TaskParameter="ConsoleOutput" PropertyName="_SkipImageBuild" />
+    </Exec>
+
+    <Message Text="Building container image for '%(SharedResourceReference.Identity)'..."
+             Importance="high"
+             Condition="'$([System.String]::Equals(%(SharedResourceReference.Mode), `Container`, System.StringComparison.OrdinalIgnoreCase))' == 'True' AND '$(_SkipImageBuild)' != 'True'" />
+
+    <Exec Command="aspire-e2e build %(SharedResourceReference.Identity)"
+          Condition="'$([System.String]::Equals(%(SharedResourceReference.Mode), `Container`, System.StringComparison.OrdinalIgnoreCase))' == 'True' AND '$(_SkipImageBuild)' != 'True'"
+          StandardOutputImportance="high"
+          StandardErrorImportance="high" />
+
+    <Message Text="Skipping image build for '%(SharedResourceReference.Identity)' (SkipImageBuild=true)."
+             Importance="high"
+             Condition="'$([System.String]::Equals(%(SharedResourceReference.Mode), `Container`, System.StringComparison.OrdinalIgnoreCase))' == 'True' AND '$(_SkipImageBuild)' == 'True'" />
+  </Target>
+
   <Target Name="_SerializeSharedResourceReferences" BeforeTargets="CoreCompile"
+          DependsOnTargets="_ResolveSharedResourceProjectReferences"
           Condition="'@(SharedResourceReference)' != ''">
     <PropertyGroup>
       <_SharedResourceReferencesJsonPath>$(IntermediateOutputPath)SharedResourceReferences.g.json</_SharedResourceReferencesJsonPath>
     </PropertyGroup>
 
     <ItemGroup>
-      <_SharedResourceReferenceLines Include="@(SharedResourceReference->'  { &quot;Id&quot;: &quot;%(Identity)&quot;, &quot;Name&quot;: &quot;%(Name)&quot;, &quot;Mode&quot;: &quot;%(Mode)&quot;, &quot;ProjectPath&quot;: &quot;%(ProjectPath)&quot;, &quot;ContainerImage&quot;: &quot;%(ContainerImage)&quot;, &quot;ContainerTag&quot;: &quot;%(ContainerTag)&quot;, &quot;BuildImageCommand&quot;: &quot;%(BuildImageCommand)&quot;, &quot;BuildImage&quot;: &quot;%(BuildImage)&quot; }')" />
+      <_SharedResourceReferenceLines Include="@(SharedResourceReference->'  { &quot;Id&quot;: &quot;%(Identity)&quot;, &quot;Name&quot;: &quot;%(Name)&quot;, &quot;Mode&quot;: &quot;%(Mode)&quot;, &quot;ProjectPath&quot;: &quot;%(ProjectPath)&quot;, &quot;ContainerImage&quot;: &quot;%(ContainerImage)&quot;, &quot;ContainerTag&quot;: &quot;%(ContainerTag)&quot;, &quot;BuildImageCommand&quot;: &quot;%(BuildImageCommand)&quot;, &quot;BuildImage&quot;: &quot;%(BuildImage)&quot;, &quot;ImageRegistry&quot;: &quot;%(ImageRegistry)&quot; }')" />
     </ItemGroup>
 
     <WriteLinesToFile File="$(_SharedResourceReferencesJsonPath)"

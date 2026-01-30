@@ -61,6 +61,61 @@ public class SingleResourceGenerationSpecs
     }
 }
 
+public class ImageRegistryGenerationSpecs
+{
+    [Fact]
+    public void Generates_resource_when_ImageRegistry_field_is_present()
+    {
+        var json = """
+        [
+          { "Id": "apiservice", "Name": "ApiService", "Mode": "Container", "ProjectPath": "", "ContainerImage": "ghcr.io/myorg/apiservice", "ContainerTag": "latest", "BuildImageCommand": "", "BuildImage": "false", "ImageRegistry": "ghcr.io/myorg" }
+        ]
+        """;
+
+        var additionalText = new InMemoryAdditionalText("SharedResourceReferences.g.json", json);
+
+        var compilation = CSharpCompilation.Create("TestAssembly",
+            references: [MetadataReference.CreateFromFile(typeof(object).Assembly.Location)]);
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new SharedResourceGenerator())
+            .AddAdditionalTexts([additionalText]);
+
+        driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _, TestContext.Current.CancellationToken);
+
+        var results = driver.GetRunResult();
+        var sources = results.GeneratedTrees
+            .Select(t => t.GetText(TestContext.Current.CancellationToken).ToString())
+            .ToList();
+
+        Assert.Single(sources);
+        Assert.Contains("AddApiService", sources[0]);
+    }
+
+    [Fact]
+    public void Generates_resource_when_ImageRegistry_field_is_missing()
+    {
+        // Backwards compatibility: JSON without ImageRegistry should still work
+        var json = """
+        [
+          { "Id": "apiservice", "Name": "ApiService", "Mode": "", "ProjectPath": "", "ContainerImage": "", "ContainerTag": "", "BuildImageCommand": "", "BuildImage": "false" }
+        ]
+        """;
+
+        var additionalText = new InMemoryAdditionalText("SharedResourceReferences.g.json", json);
+
+        var compilation = CSharpCompilation.Create("TestAssembly",
+            references: [MetadataReference.CreateFromFile(typeof(object).Assembly.Location)]);
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new SharedResourceGenerator())
+            .AddAdditionalTexts([additionalText]);
+
+        driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _, TestContext.Current.CancellationToken);
+
+        var results = driver.GetRunResult();
+        Assert.Single(results.GeneratedTrees);
+    }
+}
+
 public class EmptyResourceGenerationSpecs
 {
     [Fact]

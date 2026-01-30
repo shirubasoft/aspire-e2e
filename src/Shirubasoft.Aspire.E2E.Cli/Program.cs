@@ -21,6 +21,15 @@ app.Configure(config =>
 
     config.AddCommand<BuildCommand>("build")
         .WithDescription("Build the container image for a registered resource");
+
+    config.AddCommand<GetModeCommand>("get-mode")
+        .WithDescription("Get the mode of a registered resource (machine-readable)");
+
+    config.AddCommand<GetProjectPathCommand>("get-project-path")
+        .WithDescription("Get the project path of a registered resource (machine-readable)");
+
+    config.AddCommand<GetConfigCommand>("get-config")
+        .WithDescription("Get a configuration property of a registered resource (machine-readable)");
 });
 
 return app.Run(args);

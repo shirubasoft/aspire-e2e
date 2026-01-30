@@ -10,4 +10,6 @@ public sealed class ResourceEntry
     public string? ProjectPath { get; set; }
     public bool BuildImage { get; set; }
     public string? BuildImageCommand { get; set; }
+    public bool SkipImageBuild { get; set; }
+    public string? ImageRegistry { get; set; }
 }
