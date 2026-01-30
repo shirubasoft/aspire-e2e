@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting" />
+  </ItemGroup>
+
+  <!-- Ensure the .targets file is copied and imported by consuming projects -->
+  <ItemGroup>
+    <None Include="build\ProjectOrImage.Extensions.targets" Pack="true" PackagePath="build\" />
+  </ItemGroup>
+
+</Project>
