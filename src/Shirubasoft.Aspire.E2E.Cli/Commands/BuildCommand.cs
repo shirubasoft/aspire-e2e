@@ -97,7 +97,7 @@ public sealed class BuildCommand : AsyncCommand<BuildCommand.Settings>
         }
 
         // Tag with branch name and commit hash
-        var image = entry.ContainerImage ?? $"localhost/{settings.Id}";
+        var image = entry.ContainerImage ?? settings.Id;
 
         await CliWrap.Cli.Wrap(containerRuntime)
             .WithArguments($"tag {image}:latest {image}:{tag}")

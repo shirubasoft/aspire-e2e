@@ -4,7 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <ContainerRepository>localhost/sample-apiservice</ContainerRepository>
+    <ContainerRepository>sample-apiservice</ContainerRepository>
   </PropertyGroup>
 
   <ItemGroup>

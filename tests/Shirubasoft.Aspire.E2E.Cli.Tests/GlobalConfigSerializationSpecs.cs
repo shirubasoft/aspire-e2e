@@ -18,7 +18,7 @@ public class GlobalConfigSerializationSpecs
                 Id = "test-service",
                 Name = "TestService",
                 Mode = "Container",
-                ContainerImage = "localhost/test-service",
+                ContainerImage = "test-service",
                 ContainerTag = "main",
                 ProjectPath = "/path/to/project.csproj",
                 BuildImage = true,
@@ -33,7 +33,7 @@ public class GlobalConfigSerializationSpecs
             Assert.NotNull(entry);
             Assert.Equal("TestService", entry.Name);
             Assert.Equal("Container", entry.Mode);
-            Assert.Equal("localhost/test-service", entry.ContainerImage);
+            Assert.Equal("test-service", entry.ContainerImage);
             Assert.Equal("main", entry.ContainerTag);
             Assert.True(entry.BuildImage);
         }

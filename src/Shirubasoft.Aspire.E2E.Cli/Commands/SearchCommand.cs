@@ -68,7 +68,7 @@ public sealed class SearchCommand : Command<SearchCommand.Settings>
                 Name = name,
                 Mode = mode,
                 ProjectPath = project,
-                ContainerImage = $"localhost/{id}",
+                ContainerImage = id,
                 ContainerTag = "latest",
                 BuildImage = mode == "Container",
                 BuildImageCommand = "dotnet publish --os linux --arch x64 /t:PublishContainer"
