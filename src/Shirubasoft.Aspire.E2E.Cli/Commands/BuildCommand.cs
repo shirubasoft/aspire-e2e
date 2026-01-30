@@ -116,14 +116,15 @@ public sealed class BuildCommand : AsyncCommand<BuildCommand.Settings>
 
     private static string GetContainerRuntime()
     {
+        // Prefer docker since dotnet SDK PublishContainer targets docker by default
         try
         {
-            CliWrap.Cli.Wrap("podman").WithArguments("--version").ExecuteBufferedAsync().GetAwaiter().GetResult();
-            return "podman";
+            CliWrap.Cli.Wrap("docker").WithArguments("--version").ExecuteBufferedAsync().GetAwaiter().GetResult();
+            return "docker";
         }
         catch
         {
-            return "docker";
+            return "podman";
         }
     }
 }

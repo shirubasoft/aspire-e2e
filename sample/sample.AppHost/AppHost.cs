@@ -9,6 +9,7 @@ var apiService = builder.AddSampleApiService()
     .ConfigureProject(project => project
         .WithHttpHealthCheck("/health"))
     .ConfigureContainer(container => container
+        .WithHttpEndpoint(targetPort: 8080)
         .WithHttpHealthCheck("/health"));
 
 builder.AddProject<Projects.sample_Web>("webfrontend")
