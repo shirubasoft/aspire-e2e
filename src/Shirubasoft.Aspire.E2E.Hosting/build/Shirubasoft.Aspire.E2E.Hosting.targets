@@ -1,0 +1,20 @@
+<Project>
+  <Target Name="_SerializeSharedResourceReferences" BeforeTargets="CoreCompile"
+          Condition="'@(SharedResourceReference)' != ''">
+    <PropertyGroup>
+      <_SharedResourceReferencesJsonPath>$(IntermediateOutputPath)SharedResourceReferences.g.json</_SharedResourceReferencesJsonPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <_SharedResourceReferenceLines Include="@(SharedResourceReference->'  { &quot;Id&quot;: &quot;%(Identity)&quot;, &quot;Name&quot;: &quot;%(Name)&quot;, &quot;Mode&quot;: &quot;%(Mode)&quot;, &quot;ProjectPath&quot;: &quot;%(ProjectPath)&quot;, &quot;ContainerImage&quot;: &quot;%(ContainerImage)&quot;, &quot;ContainerTag&quot;: &quot;%(ContainerTag)&quot;, &quot;BuildImageCommand&quot;: &quot;%(BuildImageCommand)&quot;, &quot;BuildImage&quot;: &quot;%(BuildImage)&quot; }')" />
+    </ItemGroup>
+
+    <WriteLinesToFile File="$(_SharedResourceReferencesJsonPath)"
+                     Lines="[;@(_SharedResourceReferenceLines, ',');]"
+                     Overwrite="true" />
+
+    <ItemGroup>
+      <AdditionalFiles Include="$(_SharedResourceReferencesJsonPath)" />
+    </ItemGroup>
+  </Target>
+</Project>

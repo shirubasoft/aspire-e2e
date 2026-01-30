@@ -1,0 +1,13 @@
+<Project>
+  <ItemDefinitionGroup>
+    <SharedResourceReference>
+      <Name></Name>
+      <Mode></Mode>
+      <ProjectPath></ProjectPath>
+      <ContainerImage></ContainerImage>
+      <ContainerTag></ContainerTag>
+      <BuildImageCommand></BuildImageCommand>
+      <BuildImage>false</BuildImage>
+    </SharedResourceReference>
+  </ItemDefinitionGroup>
+</Project>
