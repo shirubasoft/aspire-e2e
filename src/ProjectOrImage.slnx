@@ -1,7 +1,0 @@
-<Solution>
-  <Project Path="ProjectOrImage.ApiService/ProjectOrImage.ApiService.csproj" />
-  <Project Path="ProjectOrImage.AppHost/ProjectOrImage.AppHost.csproj" />
-  <Project Path="ProjectOrImage.Extensions/ProjectOrImage.Extensions.csproj" />
-  <Project Path="ProjectOrImage.ServiceDefaults/ProjectOrImage.ServiceDefaults.csproj" />
-  <Project Path="ProjectOrImage.Web/ProjectOrImage.Web.csproj" />
-</Solution>
