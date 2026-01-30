@@ -1,12 +1,19 @@
+using Shirubasoft.Aspire.E2E.Hosting;
+using Shirubasoft.Aspire.E2E.Hosting.Generated;
+
 var builder = DistributedApplication.CreateBuilder(args);
 
-var apiService = builder.AddProject<Projects.sample_ApiService>("apiservice")
-    .WithHttpHealthCheck("/health");
+builder.Configuration.AddGlobalResourceConfiguration();
+
+var apiService = builder.AddSampleApiService()
+    .ConfigureProject(project => project
+        .WithHttpHealthCheck("/health"))
+    .ConfigureContainer(container => container
+        .WithHttpHealthCheck("/health"));
 
 builder.AddProject<Projects.sample_Web>("webfrontend")
     .WithExternalHttpEndpoints()
     .WithHttpHealthCheck("/health")
-    .WithReference(apiService)
-    .WaitFor(apiService);
+    .WaitFor(apiService.InnerBuilder);
 
 builder.Build().Run();
