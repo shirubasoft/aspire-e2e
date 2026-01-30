@@ -32,6 +32,7 @@ jobs:
       - name: Push to NuGet
         run: dotnet nuget push artifacts/Shirubasoft.*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
 
+
       - name: Create Git tag
         run: |
           git tag "v${{ steps.nbgv.outputs.SemVer2 }}"

@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "isRoot": true,
+  "tools": {
+    "shirubasoft.aspire.e2e.cli": {
+      "version": "0.1.3",
+      "commands": [
+        "aspire-e2e"
+      ],
+      "rollForward": true
+    }
+  }
+}

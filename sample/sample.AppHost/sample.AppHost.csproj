@@ -10,14 +10,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\sample.Web\sample.Web.csproj" />
-    <ProjectReference
-      Include="..\..\src\Shirubasoft.Aspire.E2E.Hosting\Shirubasoft.Aspire.E2E.Hosting.csproj"
-      IsAspireProjectResource="false" />
-    <ProjectReference
-      Include="..\..\src\Shirubasoft.Aspire.E2E.Hosting.Generator\Shirubasoft.Aspire.E2E.Hosting.Generator.csproj"
-      OutputItemType="Analyzer"
-      ReferenceOutputAssembly="false"
-      IsAspireProjectResource="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Shirubasoft.Aspire.E2E.Hosting" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,10 +21,5 @@
       <Name>SampleApiService</Name>
     </SharedResourceReference>
   </ItemGroup>
-
-  <Import
-    Project="..\..\src\Shirubasoft.Aspire.E2E.Hosting\build\Shirubasoft.Aspire.E2E.Hosting.props" />
-  <Import
-    Project="..\..\src\Shirubasoft.Aspire.E2E.Hosting\build\Shirubasoft.Aspire.E2E.Hosting.targets" />
 
 </Project>
