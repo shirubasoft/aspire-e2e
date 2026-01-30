@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <EnableSdkContainerSupport>true</EnableSdkContainerSupport>
+    <ContainerRepository Condition="'$(ContainerRepository)' == ''">localhost/$(AssemblyName)</ContainerRepository>
+  </PropertyGroup>
+</Project>
