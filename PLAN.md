@@ -2,114 +2,141 @@
 
 ## Concept
 
-A compile-time mechanism similar to Aspire's internal `AspireProjectOrPackageReference` that conditionally references either a .NET project (for local development) or a pre-built Docker image (for CI/deployment), controlled by an MSBuild property.
+A compile-time MSBuild mechanism that, per resource, either references a local project or builds+uses a container image. Image data, publish commands, and repo paths all live in the AppHost csproj. A comma-separated `ContainerResources` property controls which resources use containers.
 
-## How Aspire's `AspireProjectOrPackageReference` Works (reference)
-
-- **MSBuild item** in `Aspire.RepoTesting.targets` (repo-internal, not public SDK)
-- Controlled by `$(TestsRunningOutsideOfRepo)` property
-- When `false`: resolves to `<ProjectReference>` pointing to source `.csproj`
-- When `true`: resolves to `<PackageReference>` by identity
-- In AppHost projects: `IsAspireProjectResource="false"` prevents library refs from becoming orchestrated resources
-
-## How AppHost Project References Work (public SDK)
-
-1. `Sdk.in.targets` marks `<ProjectReference>` items with `IsAspireProjectResource=true`
-2. `Aspire.Hosting.AppHost.in.targets` generates `IProjectMetadata` classes in `Projects` namespace
-3. User calls `builder.AddProject<Projects.MyProject>("name")`
-4. Runtime creates `ProjectResource`, DCP launches the process
-
-## How Container Resources Work
-
-1. `builder.AddContainer("name", "image", "tag")` creates a `ContainerResource`
-2. Image info stored in `ContainerImageAnnotation`
-3. DCP pulls and runs the container
-
-## Design: Compile-Time `ProjectOrImageReference`
-
-### Mechanism
-
-An MSBuild `.targets` file that:
-
-1. **Defines a new item type**: `<ProjectOrImageReference>` with metadata for `ContainerImage`, `ContainerTag`, `ContainerRegistry`
-2. **Defines a compile constant**: When `$(UseContainerImages) == true`, adds `USE_CONTAINER_IMAGES` to `DefineConstants`
-3. **Project mode** (default, `UseContainerImages != true`):
-   - Converts `ProjectOrImageReference` items into `ProjectReference` items
-   - Aspire SDK generates `IProjectMetadata` classes in `Projects` namespace as usual
-   - AppHost code uses `builder.AddProject<Projects.MyService>("name")`
-4. **Container mode** (`UseContainerImages == true`):
-   - Does NOT create `ProjectReference` items
-   - Generates static metadata classes in `Containers` namespace via an inline MSBuild task
-   - Each class exposes `Image`, `Tag`, and `Registry` properties
-   - AppHost code uses `builder.AddContainerImage("name", Containers.MyService.Image, ...)`
-
-### Compile-Time Switching
-
-AppHost code uses `#if USE_CONTAINER_IMAGES` preprocessor directives:
-
-```csharp
-#if USE_CONTAINER_IMAGES
-var api = builder.AddContainerImage("api",
-    Containers.MyService.Image,
-    Containers.MyService.Tag,
-    Containers.MyService.Registry)
-    .WithHttpEndpoint(targetPort: 8080);
-#else
-var api = builder.AddProject<Projects.MyService>("api");
-#endif
-```
-
-### Build Commands
-
-```bash
-# Local development (project references)
-dotnet build
-dotnet run --project src/MyAppHost
-
-# CI/Deployment (container images)
-dotnet build -p:UseContainerImages=true
-dotnet run --project src/MyAppHost -p:UseContainerImages=true
-```
-
-### AppHost .csproj Usage
+## User-Facing API (csproj)
 
 ```xml
+<PropertyGroup>
+  <!-- Comma-separated resource names that should use containers -->
+  <!-- Pass via: -p:ContainerResources=ApiService,OtherService -->
+  <ContainerResources></ContainerResources>
+</PropertyGroup>
+
 <ItemGroup>
-  <ProjectOrImageReference Include="..\MyService\MyService.csproj"
-                           ContainerImage="myregistry.azurecr.io/my-service"
-                           ContainerTag="latest" />
+  <ProjectOrImageReference Include="ApiService"
+      RepoDirectory="api-service"
+      ProjectFile="src/ApiService/ApiService.csproj"
+      ContainerImage="myregistry.azurecr.io/api-service"
+      PublishCommand="./build.sh publish" />
 </ItemGroup>
-
-<Import Project="..\Extensions\build\ProjectOrImage.Extensions.targets" />
 ```
 
-## File Structure
+- `RepoDirectory`: relative to `$REPOS_BASE_PATH` env var
+- `ProjectFile`: path to `.csproj` relative to repo root
+- `ContainerImage`: image name (used for docker tag and AddContainer)
+- `PublishCommand`: shell command to build the image (run from repo root)
 
+## Mechanism
+
+### MSBuild Targets (`ProjectOrImage.Extensions.targets`)
+
+**Evaluation-time:** All `ProjectOrImageReference` items are added as `ProjectReference` (resolved via `$REPOS_BASE_PATH/%(RepoDirectory)/%(ProjectFile)`).
+
+**Target `_RemoveContainerModeProjectReferences`** (runs before Aspire's `_CreateAspireProjectResources`):
+- For items whose Include name IS in `$(ContainerResources)`, removes their `ProjectReference`
+- This prevents Aspire from generating `IProjectMetadata` for container-mode resources
+
+**Target `_GenerateProjectOrImageCode`** (runs before `CoreCompile`):
+
+For container-mode items:
+1. Gets the git HEAD SHA of `$REPOS_BASE_PATH/%(RepoDirectory)`
+2. Checks if `%(ContainerImage):sha-{SHA}` exists locally via `docker image inspect`
+3. If not: runs `%(PublishCommand)` from the repo directory, then tags the image
+4. If yes: skips the build
+
+**Always generates** three source files:
+
+- `ResourceFlags.g.cs` — per-resource boolean flags
+- `ContainerImages.g.cs` — image/tag constants for all resources
+- `ProjectStubs.g.cs` — stub `IProjectMetadata` classes for container-mode resources (so `TProject` generic constraint is satisfied)
+
+### Generated Code Example
+
+```csharp
+// ResourceFlags.g.cs
+namespace ProjectOrImage;
+public static class ResourceFlags
+{
+    public static bool IsContainer(string name) => name switch
+    {
+        "ApiService" => true,  // or false in project mode
+        _ => false,
+    };
+}
+
+// ContainerImages.g.cs
+namespace ProjectOrImage;
+public static class ContainerImages
+{
+    public static class ApiService
+    {
+        public const string Image = "myregistry.azurecr.io/api-service";
+        public const string Tag = "sha-abc1234";  // or "latest" if no SHA resolved
+    }
+}
+
+// ProjectStubs.g.cs (only when ApiService is in container mode)
+namespace Projects;
+public class ProjectOrImage_ApiService : IProjectMetadata
+{
+    public string ProjectPath => "";
+    public bool SuppressBuild => true;
+}
 ```
-project-or-container-reference/
-    PLAN.md
-    src/
-        ProjectOrImage.AppHost/               # Aspire AppHost with #if switching
-        ProjectOrImage.ApiService/            # Sample API project
-        ProjectOrImage.Web/                   # Sample web frontend
-        ProjectOrImage.ServiceDefaults/       # Shared service defaults
-        ProjectOrImage.Extensions/            # The extension library
-            Features/
-                ProjectOrImage/
-                    ProjectOrImageExtensions.cs   # AddContainerImage helper
-                    ContainerImageReference.cs    # ImageReference record
-            build/
-                ProjectOrImage.Extensions.targets # MSBuild targets for compile-time switching
-        ProjectOrImage.slnx
-        Directory.Build.props
-        Directory.Packages.props
-        .editorconfig
-        global.json
+
+### Runtime Extension Method
+
+```csharp
+public static IResourceBuilder<IResource> AddProjectOrImage<TProject>(
+    this IDistributedApplicationBuilder builder,
+    string name,
+    bool isContainer,
+    string image,
+    string tag)
+    where TProject : IProjectMetadata, new()
+```
+
+Checks `isContainer`:
+- `false` → `builder.AddProject<TProject>(name)`
+- `true` → `builder.AddContainer(name, image, tag)`
+
+### AppHost Code (no `#if` blocks)
+
+```csharp
+var apiService = builder.AddProjectOrImage<Projects.ProjectOrImage_ApiService>(
+    "ApiService",
+    ResourceFlags.IsContainer("ApiService"),
+    ContainerImages.ApiService.Image,
+    ContainerImages.ApiService.Tag)
+    .WithHttpEndpoint(targetPort: 8080)
+    .WithHttpHealthCheck("/health");
+
+builder.AddProject<Projects.ProjectOrImage_Web>("webfrontend")
+    .WithExternalHttpEndpoints()
+    .WithHttpHealthCheck("/health")
+    .WithReference(apiService.GetEndpoint("http"))
+    .WaitFor(apiService);
+```
+
+## Build Commands
+
+```bash
+# All as projects (default)
+REPOS_BASE_PATH=/path/to/repos dotnet build
+
+# ApiService as container, rest as projects
+REPOS_BASE_PATH=/path/to/repos dotnet build -p:ContainerResources=ApiService
+
+# Multiple as containers
+REPOS_BASE_PATH=/path/to/repos dotnet build -p:ContainerResources=ApiService,OtherService
 ```
 
 ## Key Design Decisions
 
-1. **Compile-time over runtime**: Uses `#if` directives and MSBuild properties instead of runtime configuration. The decision of project vs container is made at build time.
-2. **Code generation**: Container metadata classes are generated by an MSBuild inline task, mirroring how Aspire generates `IProjectMetadata` classes.
-3. **Import ordering**: The `.targets` file must be imported AFTER `ProjectOrImageReference` items are defined in the csproj to ensure MSBuild evaluation order is correct.
-4. **Type differences**: In container mode, resources are `IResourceBuilder<ContainerResource>` which doesn't implement `IResourceWithConnectionString`. Endpoint-based references (`WithReference(apiService.GetEndpoint("http"))`) are used instead.
+1. **Per-resource switching**: Each resource independently switches between project and container mode via `ContainerResources` comma-separated list.
+2. **No `#if` blocks**: Runtime `ResourceFlags.IsContainer()` check replaces preprocessor directives.
+3. **Stub generation**: Container-mode resources get stub `IProjectMetadata` classes matching Aspire's naming convention (derived from `ProjectFile` filename), so the same `TProject` generic parameter compiles in both modes.
+4. **Evaluation-time + target hybrid**: ProjectReferences are added at evaluation time (required for Aspire's source generation), then container-mode ones are removed in a target before Aspire processes them.
+5. **Type differences**: Returns `IResourceBuilder<IResource>`. Use endpoint-based references (`.WithReference(apiService.GetEndpoint("http"))`) since `IResource` doesn't satisfy `IResourceWithConnectionString`.
+6. **SHA-based tagging**: Container images are tagged with the git SHA of the repo to enable incremental builds.
