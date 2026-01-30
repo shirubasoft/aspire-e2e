@@ -55,7 +55,7 @@ public sealed class BuildCommand : AsyncCommand<BuildCommand.Settings>
             .ExecuteBufferedAsync();
         var commit = commitResult.StandardOutput.Trim();
 
-        var tag = branch;
+        var tag = SanitizeDockerTag(branch);
         var commitTag = commit;
 
         var containerRuntime = await GetContainerRuntime();
@@ -114,6 +114,22 @@ public sealed class BuildCommand : AsyncCommand<BuildCommand.Settings>
 
         AnsiConsole.MarkupLine($"[green]Built and tagged: {image}:{tag}, {image}:{commitTag}[/]");
         return 0;
+    }
+
+    internal static string SanitizeDockerTag(string tag)
+    {
+        // Docker tags must match [a-zA-Z0-9_.-]+
+        // Replace invalid characters with dashes
+        var sanitized = new char[tag.Length];
+        for (int i = 0; i < tag.Length; i++)
+        {
+            char c = tag[i];
+            sanitized[i] = char.IsLetterOrDigit(c) || c == '_' || c == '.' || c == '-'
+                ? c
+                : '-';
+        }
+
+        return new string(sanitized);
     }
 
     private static async Task<string> GetContainerRuntime()
