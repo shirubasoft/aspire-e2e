@@ -24,10 +24,10 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - run: dotnet restore
-      - run: dotnet build --no-restore -c Release
-      - run: dotnet test --no-build -c Release
-      - run: dotnet pack --no-build -c Release -o artifacts
+      - run: dotnet restore --no-cache src/ tests/
+      - run: dotnet build --no-restore -c Release src/ tests/
+      - run: dotnet test --no-build -c Release src/ tests/
+      - run: dotnet pack --no-build -c Release -o artifacts src/
 
       - name: Push to NuGet
         run: dotnet nuget push artifacts/Shirubasoft.*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
