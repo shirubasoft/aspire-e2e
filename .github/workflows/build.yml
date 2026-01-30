@@ -22,6 +22,6 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - run: dotnet restore --no-cache src/ tests/
-      - run: dotnet build --no-restore -c Release src/ tests/
-      - run: dotnet test --no-build -c Release src/ tests/
+      - run: dotnet restore
+      - run: dotnet build --no-restore -c Release
+      - run: dotnet test --no-build -c Release
