@@ -42,7 +42,7 @@ public sealed class UpdateCommand : Command<UpdateCommand.Settings>
         public string? BuildImageCommand { get; set; }
     }
 
-    public override int Execute(CommandContext context, Settings settings)
+    public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken)
     {
         var config = GlobalConfigFile.Load();
         var entry = config.GetResource(settings.Id);

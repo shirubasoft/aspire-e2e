@@ -14,7 +14,7 @@ public sealed class RemoveCommand : Command<RemoveCommand.Settings>
         public required string Id { get; set; }
     }
 
-    public override int Execute(CommandContext context, Settings settings)
+    public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken)
     {
         var config = GlobalConfigFile.Load();
 

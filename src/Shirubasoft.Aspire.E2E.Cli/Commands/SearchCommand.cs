@@ -19,7 +19,7 @@ public sealed class SearchCommand : Command<SearchCommand.Settings>
         public int Depth { get; set; } = 10;
     }
 
-    public override int Execute(CommandContext context, Settings settings)
+    public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken)
     {
         var searchPath = settings.Path ?? Directory.GetCurrentDirectory();
         searchPath = System.IO.Path.GetFullPath(searchPath);

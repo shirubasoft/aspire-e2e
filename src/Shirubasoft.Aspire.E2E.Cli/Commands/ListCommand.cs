@@ -6,7 +6,7 @@ namespace Shirubasoft.Aspire.E2E.Cli.Commands;
 
 public sealed class ListCommand : Command
 {
-    public override int Execute(CommandContext context)
+    public override int Execute(CommandContext context, CancellationToken cancellationToken)
     {
         var config = GlobalConfigFile.Load();
 

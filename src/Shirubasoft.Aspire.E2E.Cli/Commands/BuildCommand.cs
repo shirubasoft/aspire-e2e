@@ -23,7 +23,7 @@ public sealed class BuildCommand : AsyncCommand<BuildCommand.Settings>
         public bool Force { get; set; }
     }
 
-    public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
+    public override async Task<int> ExecuteAsync(CommandContext context, Settings settings, CancellationToken cancellationToken)
     {
         var config = GlobalConfigFile.Load();
         var entry = config.GetResource(settings.Id);
