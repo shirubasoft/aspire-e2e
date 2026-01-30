@@ -40,4 +40,19 @@ public abstract class ResourceBuilderProxy(IResourceBuilder<IResource> resourceB
 
         return this;
     }
+
+    /// <summary>
+    /// Returns the inner builder as <see cref="IResourceBuilder{T}"/> if the resource is of type <typeparamref name="T"/>;
+    /// otherwise throws <see cref="InvalidOperationException"/>.
+    /// </summary>
+    public IResourceBuilder<T> As<T>() where T : IResource
+    {
+        if (InnerBuilder.Resource is T)
+        {
+            return (IResourceBuilder<T>)InnerBuilder;
+        }
+
+        throw new InvalidOperationException(
+            $"Resource '{InnerBuilder.Resource.Name}' is of type '{InnerBuilder.Resource.GetType().Name}', not '{typeof(T).Name}'.");
+    }
 }

@@ -1,3 +1,4 @@
+using Aspire.Hosting.ApplicationModel;
 using Shirubasoft.Aspire.E2E.Hosting;
 using Shirubasoft.Aspire.E2E.Hosting.Generated;
 
@@ -15,6 +16,7 @@ var apiService = builder.AddSampleApiService()
 builder.AddProject<Projects.sample_Web>("webfrontend")
     .WithExternalHttpEndpoints()
     .WithHttpHealthCheck("/health")
+    .WithReference(apiService.As<IResourceWithEndpoints>().GetEndpoint("http"))
     .WaitFor(apiService.InnerBuilder);
 
 builder.Build().Run();
