@@ -1,0 +1,26 @@
+name: Sample
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'sample/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - run: dotnet restore
+        working-directory: sample
+
+      - run: dotnet build --no-restore -c Release
+        working-directory: sample
