@@ -45,6 +45,7 @@ public class SharedResourceGenerator : IIncrementalGenerator
             var name = ExtractJsonValue(entry, "Name");
             var mode = ExtractJsonValue(entry, "Mode");
             var projectPath = ExtractJsonValue(entry, "ProjectPath");
+            var imageRegistry = ExtractJsonValue(entry, "ImageRegistry");
 
             if (string.IsNullOrEmpty(id))
                 continue;
@@ -53,7 +54,7 @@ public class SharedResourceGenerator : IIncrementalGenerator
             if (string.IsNullOrEmpty(name))
                 name = ToPascalCase(id);
 
-            builder.Add(new ResourceDefinition(id, name, mode, projectPath));
+            builder.Add(new ResourceDefinition(id, name, mode, projectPath, imageRegistry));
         }
 
         return builder.ToImmutable();
@@ -96,6 +97,8 @@ public class SharedResourceGenerator : IIncrementalGenerator
 
     private static void GenerateResourceCode(SourceProductionContext context, ResourceDefinition resource)
     {
+        var hasImageRegistry = !string.IsNullOrEmpty(resource.ImageRegistry);
+
         var isProjectMode = string.Equals(resource.Mode, "Project", System.StringComparison.OrdinalIgnoreCase)
             && !string.IsNullOrEmpty(resource.ProjectPath);
 
@@ -200,13 +203,15 @@ public static class {resource.Name}ResourceExtensions
         public string Name { get; }
         public string Mode { get; }
         public string ProjectPath { get; }
+        public string ImageRegistry { get; }
 
-        public ResourceDefinition(string id, string name, string mode, string projectPath)
+        public ResourceDefinition(string id, string name, string mode, string projectPath, string imageRegistry)
         {
             Id = id;
             Name = name;
             Mode = mode;
             ProjectPath = projectPath;
+            ImageRegistry = imageRegistry;
         }
     }
 }

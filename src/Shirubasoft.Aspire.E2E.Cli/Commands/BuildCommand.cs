@@ -98,21 +98,26 @@ public sealed class BuildCommand : AsyncCommand<BuildCommand.Settings>
 
         // Tag with branch name and commit hash
         var image = entry.ContainerImage ?? settings.Id;
+        var registryImage = !string.IsNullOrEmpty(entry.ImageRegistry)
+            ? $"{entry.ImageRegistry}/{image}"
+            : image;
 
         await CliWrap.Cli.Wrap(containerRuntime)
-            .WithArguments($"tag {image}:latest {image}:{tag}")
+            .WithArguments($"tag {image}:latest {registryImage}:{tag}")
             .ExecuteBufferedAsync();
 
         await CliWrap.Cli.Wrap(containerRuntime)
-            .WithArguments($"tag {image}:latest {image}:{commitTag}")
+            .WithArguments($"tag {image}:latest {registryImage}:{commitTag}")
             .ExecuteBufferedAsync();
 
-        // Update config with the current branch tag
+        // Update config with the current branch tag and registry-prefixed image
         entry.ContainerTag = tag;
+        if (!string.IsNullOrEmpty(entry.ImageRegistry))
+            entry.ContainerImage = registryImage;
         config.SetResource(settings.Id, entry);
         config.Save();
 
-        AnsiConsole.MarkupLine($"[green]Built and tagged: {image}:{tag}, {image}:{commitTag}[/]");
+        AnsiConsole.MarkupLine($"[green]Built and tagged: {registryImage}:{tag}, {registryImage}:{commitTag}[/]");
         return 0;
     }
 
