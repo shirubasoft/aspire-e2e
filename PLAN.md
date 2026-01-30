@@ -96,7 +96,8 @@ public abstract class ResourceBuilderProxy(IResourceBuilder<IResource> resourceB
 }
 ```
 
-If the resource mode is Container and build image is true, the container image will be built before running the apphost using the specified build image command as part of the apphost build process. This will be done using MSBuild targets injected by a package reference in the project.
+If the resource mode is Container and build image is true, the container image will be built before running the apphost using the specified build image command as part of the apphost build process.
+This will be done using MSBuild targets injected by a package reference in the project. Build should use aspire-e2e
 
 ### Project
 
@@ -144,4 +145,17 @@ aspire-e2e remove [id]
 
 # Updates information about a registered project in the global project repository. Interactive if no options are provided
 aspire-e2e update [id] --name [name] --mode [mode] --container-image [image] --container-tag [tag] --project-path [path] --build-image [true|false] --build-image-command [command]
+
+# Builds the container image for a registered project in the global project repository. The default tags are the current branch and commit hash. Does not build if the hash is already built, unless --force is provided
+aspire-e2e build [id] [--force]
 ```
+
+## Tech Stack
+
+- .NET 10
+- C#
+- MSBuild
+- Spectre.Console.CLI for CLI tool
+- CliWrap for running external commands in the CLI tool
+  - Docker/Podman CLI for building container images
+  - Git CLI for getting current branch and commit hash
