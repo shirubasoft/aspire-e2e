@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Configuration;
 
-namespace Shirubasoft.Aspire.E2E.Hosting;
+namespace Aspire.Hosting;
 
 /// <summary>
 /// Extensions to add the global aspire-e2e configuration file to <see cref="IConfigurationBuilder"/>.

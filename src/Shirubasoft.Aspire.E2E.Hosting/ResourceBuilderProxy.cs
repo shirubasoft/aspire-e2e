@@ -1,7 +1,6 @@
-using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
 
-namespace Shirubasoft.Aspire.E2E.Hosting;
+namespace Aspire.Hosting;
 
 /// <summary>
 /// Wraps an <see cref="IResourceBuilder{IResource}"/> and provides mode-aware configuration methods.
