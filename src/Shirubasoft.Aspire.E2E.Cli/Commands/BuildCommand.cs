@@ -1,9 +1,12 @@
+using System.ComponentModel;
+
 using CliWrap;
 using CliWrap.Buffered;
+
 using Shirubasoft.Aspire.E2E.Cli.GlobalConfig;
+
 using Spectre.Console;
 using Spectre.Console.Cli;
-using System.ComponentModel;
 
 namespace Shirubasoft.Aspire.E2E.Cli.Commands;
 
@@ -55,10 +58,10 @@ public sealed class BuildCommand : AsyncCommand<BuildCommand.Settings>
         var tag = branch;
         var commitTag = commit;
 
+        var containerRuntime = await GetContainerRuntime();
         if (!settings.Force)
         {
             // Check if image already exists with this commit tag
-            var containerRuntime = GetContainerRuntime();
             try
             {
                 var inspectResult = await CliWrap.Cli.Wrap(containerRuntime)
@@ -94,14 +97,13 @@ public sealed class BuildCommand : AsyncCommand<BuildCommand.Settings>
         }
 
         // Tag with branch name and commit hash
-        var containerRuntime2 = GetContainerRuntime();
         var image = entry.ContainerImage ?? $"localhost/{settings.Id}";
 
-        await CliWrap.Cli.Wrap(containerRuntime2)
+        await CliWrap.Cli.Wrap(containerRuntime)
             .WithArguments($"tag {image}:latest {image}:{tag}")
             .ExecuteBufferedAsync();
 
-        await CliWrap.Cli.Wrap(containerRuntime2)
+        await CliWrap.Cli.Wrap(containerRuntime)
             .WithArguments($"tag {image}:latest {image}:{commitTag}")
             .ExecuteBufferedAsync();
 
@@ -114,12 +116,12 @@ public sealed class BuildCommand : AsyncCommand<BuildCommand.Settings>
         return 0;
     }
 
-    private static string GetContainerRuntime()
+    private static async Task<string> GetContainerRuntime()
     {
         // Prefer docker since dotnet SDK PublishContainer targets docker by default
         try
         {
-            CliWrap.Cli.Wrap("docker").WithArguments("--version").ExecuteBufferedAsync().GetAwaiter().GetResult();
+            await CliWrap.Cli.Wrap("docker").WithArguments("--version").ExecuteBufferedAsync();
             return "docker";
         }
         catch
