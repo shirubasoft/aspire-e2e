@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <SharedResourceReference Include="sample-apiservice">
+      <Name>SampleApiService</Name>
     </SharedResourceReference>
   </ItemGroup>
 
