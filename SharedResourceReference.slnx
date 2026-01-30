@@ -1,0 +1,18 @@
+<Solution>
+  <Folder Name="/sample/">
+    <Project Path="sample/sample.ApiService/sample.ApiService.csproj" />
+    <Project Path="sample/sample.AppHost/sample.AppHost.csproj" />
+    <Project Path="sample/sample.ServiceDefaults/sample.ServiceDefaults.csproj" />
+    <Project Path="sample/sample.Web/sample.Web.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/Shirubasoft.Aspire.E2E.Cli/Shirubasoft.Aspire.E2E.Cli.csproj" />
+    <Project Path="src/Shirubasoft.Aspire.E2E.Hosting.Generator/Shirubasoft.Aspire.E2E.Hosting.Generator.csproj" />
+    <Project Path="src/Shirubasoft.Aspire.E2E.Hosting/Shirubasoft.Aspire.E2E.Hosting.csproj" />
+    <Project Path="src/Shirubasoft.Aspire.E2E/Shirubasoft.Aspire.E2E.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Shirubasoft.Aspire.E2E.Cli.Tests/Shirubasoft.Aspire.E2E.Cli.Tests.csproj" />
+    <Project Path="tests/Shirubasoft.Aspire.E2E.Hosting.Tests/Shirubasoft.Aspire.E2E.Hosting.Tests.csproj" />
+  </Folder>
+</Solution>
