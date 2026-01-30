@@ -9,14 +9,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\sample.ServiceDefaults\sample.ServiceDefaults.csproj" />
-    <ProjectReference Include="..\..\src\Shirubasoft.Aspire.E2E\Shirubasoft.Aspire.E2E.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Shirubasoft.Aspire.E2E" />
   </ItemGroup>
-
-  <!-- Imported explicitly because ProjectReference doesn't auto-import build/ props (NuGet PackageReference does) -->
-  <Import Project="..\..\src\Shirubasoft.Aspire.E2E\build\Shirubasoft.Aspire.E2E.props" />
 
 </Project>
