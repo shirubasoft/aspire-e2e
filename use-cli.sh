@@ -18,11 +18,9 @@ usage() {
 case "$1" in
     local)
         echo "Packing local CLI..."
-        dotnet pack "$SCRIPT_DIR/$PROJECT_PATH" -o "$SCRIPT_DIR/.nupkg" -c Release --no-restore
+        dotnet pack "$SCRIPT_DIR/$PROJECT_PATH" -o "$SCRIPT_DIR/.nupkg" -c Release
 
-        # Extract version from the generated nupkg filename
-        NUPKG=$(ls -1 "$SCRIPT_DIR/.nupkg/Shirubasoft.Aspire.E2E.Cli."*.nupkg | head -1)
-        VERSION=$(basename "$NUPKG" | sed 's/^Shirubasoft\.Aspire\.E2E\.Cli\.//;s/\.nupkg$//')
+        VERSION=$(nbgv get-version -v NuGetPackageVersion)
 
         echo "Installing local CLI globally (v$VERSION)..."
         dotnet tool update "$TOOL_NAME" \
