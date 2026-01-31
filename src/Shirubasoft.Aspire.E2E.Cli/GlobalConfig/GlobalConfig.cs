@@ -1,20 +1,11 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Shirubasoft.Aspire.E2E.Common;
 
 namespace Shirubasoft.Aspire.E2E.Cli.GlobalConfig;
 
 public sealed class GlobalConfigFile
 {
-    public const string LocalConfigFileName = "e2e-resources.json";
-
-    private static readonly string DefaultDirectory = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-        ".aspire-e2e");
-
-    private static string DefaultPath =>
-        Environment.GetEnvironmentVariable("ASPIRE_E2E_CONFIG_PATH")
-        ?? Path.Combine(DefaultDirectory, "resources.json");
-
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
         WriteIndented = true,
@@ -26,8 +17,8 @@ public sealed class GlobalConfigFile
 
     public static GlobalConfigFile Load(string? path = null)
     {
-        var global = LoadFile(path ?? DefaultPath);
-        var localPath = FindLocalConfigFile();
+        var global = LoadFile(path ?? ConfigPaths.DefaultConfigPath);
+        var localPath = ConfigPaths.FindLocalConfigFile();
 
         if (localPath is null)
         {
@@ -44,30 +35,6 @@ public sealed class GlobalConfigFile
         return global;
     }
 
-    public static string? FindLocalConfigFile(string? startDirectory = null)
-    {
-        var directory = startDirectory ?? Directory.GetCurrentDirectory();
-
-        while (directory is not null)
-        {
-            var candidate = Path.Combine(directory, LocalConfigFileName);
-
-            if (File.Exists(candidate))
-            {
-                return candidate;
-            }
-
-            if (Directory.Exists(Path.Combine(directory, ".git")))
-            {
-                break;
-            }
-
-            directory = Path.GetDirectoryName(directory);
-        }
-
-        return null;
-    }
-
     public static GlobalConfigFile LoadFile(string configPath)
     {
         if (!File.Exists(configPath))
@@ -81,7 +48,7 @@ public sealed class GlobalConfigFile
 
     public void Save(string? path = null)
     {
-        var configPath = path ?? DefaultPath;
+        var configPath = path ?? ConfigPaths.DefaultConfigPath;
         var directory = Path.GetDirectoryName(configPath)!;
 
         if (!Directory.Exists(directory))

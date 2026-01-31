@@ -33,6 +33,12 @@ app.Configure(config =>
 
     config.AddCommand<ImportCommand>("import")
         .WithDescription("Import resources from an e2e-resources.json file into the global configuration");
+
+    config.AddCommand<ModesCommand>("modes")
+        .WithDescription("View and toggle the mode (Project/Container) of registered resources");
+
+    config.AddCommand<ClearCommand>("clear")
+        .WithDescription("Delete all resources from the global configuration");
 });
 
 return app.Run(args);

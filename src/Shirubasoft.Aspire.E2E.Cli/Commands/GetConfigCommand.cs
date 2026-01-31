@@ -30,7 +30,6 @@ public sealed class GetConfigCommand : Command<GetConfigCommand.Settings>
             "ProjectPath" => entry.ProjectPath,
             "BuildImage" => entry.BuildImage.ToString(),
             "BuildImageCommand" => entry.BuildImageCommand,
-            "SkipImageBuild" => entry.SkipImageBuild.ToString(),
             "ImageRegistry" => entry.ImageRegistry,
             _ => null
         };

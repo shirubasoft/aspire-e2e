@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Shirubasoft.Aspire.E2E.Common\Shirubasoft.Aspire.E2E.Common.csproj" />
     <ProjectReference Include="..\Shirubasoft.Aspire.E2E.Hosting.Generator\Shirubasoft.Aspire.E2E.Hosting.Generator.csproj"
                       OutputItemType="Analyzer"
                       ReferenceOutputAssembly="false" />

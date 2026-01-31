@@ -68,7 +68,7 @@ public class GlobalConfigSerializationSpecs
     }
 
     [Fact]
-    public void Round_trips_SkipImageBuild_and_ImageRegistry()
+    public void Round_trips_ImageRegistry()
     {
         var tempPath = Path.Combine(Path.GetTempPath(), $"aspire-e2e-test-{Guid.NewGuid()}.json");
 
@@ -79,7 +79,7 @@ public class GlobalConfigSerializationSpecs
             {
                 Id = "registry-svc",
                 Mode = "Container",
-                SkipImageBuild = true,
+                BuildImage = false,
                 ImageRegistry = "ghcr.io/myorg"
             });
 
@@ -89,7 +89,7 @@ public class GlobalConfigSerializationSpecs
             var entry = loaded.GetResource("registry-svc");
 
             Assert.NotNull(entry);
-            Assert.True(entry.SkipImageBuild);
+            Assert.False(entry.BuildImage);
             Assert.Equal("ghcr.io/myorg", entry.ImageRegistry);
         }
         finally
@@ -99,16 +99,37 @@ public class GlobalConfigSerializationSpecs
     }
 
     [Fact]
-    public void SkipImageBuild_defaults_to_false()
-    {
-        var entry = new ResourceEntry { Id = "test" };
-        Assert.False(entry.SkipImageBuild);
-    }
-
-    [Fact]
     public void ImageRegistry_defaults_to_null()
     {
         var entry = new ResourceEntry { Id = "test" };
         Assert.Null(entry.ImageRegistry);
+    }
+}
+
+public class ClearConfigSpecs
+{
+    [Fact]
+    public void Saving_empty_config_clears_all_resources()
+    {
+        var tempPath = Path.Combine(Path.GetTempPath(), $"aspire-e2e-test-{Guid.NewGuid()}.json");
+
+        try
+        {
+            var config = new GlobalConfigFile();
+            config.SetResource("svc-a", new ResourceEntry { Id = "svc-a" });
+            config.SetResource("svc-b", new ResourceEntry { Id = "svc-b" });
+            config.Save(tempPath);
+
+            // Simulate what ClearCommand does
+            var cleared = new GlobalConfigFile();
+            cleared.Save(tempPath);
+
+            var loaded = GlobalConfigFile.Load(tempPath);
+            Assert.Empty(loaded.Aspire.Resources);
+        }
+        finally
+        {
+            File.Delete(tempPath);
+        }
     }
 }

@@ -263,7 +263,6 @@ public class GetConfigCommandSpecs : IDisposable
     [InlineData("ContainerTag", "v1")]
     [InlineData("ProjectPath", "/path/to/project.csproj")]
     [InlineData("BuildImage", "True")]
-    [InlineData("SkipImageBuild", "False")]
     public void Returns_zero_for_valid_keys(string key, string _)
     {
         var config = new GlobalConfigFile();
@@ -332,6 +331,7 @@ public class ImportCommandSpecs : IDisposable
             Id = "imported-svc",
             Name = "ImportedSvc",
             Mode = "Container",
+            ProjectPath = "/path/to/project.csproj",
             ContainerImage = "my-image"
         });
         source.Save(_importFilePath);
@@ -349,14 +349,24 @@ public class ImportCommandSpecs : IDisposable
     }
 
     [Fact]
-    public void Merges_with_existing_resources()
+    public void Adds_new_resources_alongside_existing_ones()
     {
         var config = new GlobalConfigFile();
-        config.SetResource("existing", new ResourceEntry { Id = "existing", Name = "Existing" });
+        config.SetResource("existing", new ResourceEntry
+        {
+            Id = "existing",
+            Name = "Existing",
+            ProjectPath = "/existing.csproj"
+        });
         _fixture.WriteConfig(config);
 
         var source = new GlobalConfigFile();
-        source.SetResource("new-svc", new ResourceEntry { Id = "new-svc", Name = "NewSvc" });
+        source.SetResource("new-svc", new ResourceEntry
+        {
+            Id = "new-svc",
+            Name = "NewSvc",
+            ProjectPath = "/new.csproj"
+        });
         source.Save(_importFilePath);
 
         var app = _fixture.CreateApp();
@@ -370,23 +380,104 @@ public class ImportCommandSpecs : IDisposable
     }
 
     [Fact]
-    public void Overwrites_existing_resource_with_same_id()
+    public void Merge_updates_only_provided_fields()
     {
         var config = new GlobalConfigFile();
-        config.SetResource("svc", new ResourceEntry { Id = "svc", Name = "Old" });
+        config.SetResource("svc", new ResourceEntry
+        {
+            Id = "svc",
+            Name = "Original",
+            Mode = "Project",
+            ProjectPath = "/original.csproj",
+            ContainerImage = "old-image"
+        });
         _fixture.WriteConfig(config);
 
         var source = new GlobalConfigFile();
-        source.SetResource("svc", new ResourceEntry { Id = "svc", Name = "New" });
+        source.SetResource("svc", new ResourceEntry
+        {
+            Id = "svc",
+            Mode = "Container",
+            ContainerImage = "new-image",
+            ContainerTag = "v2"
+        });
         source.Save(_importFilePath);
 
         var app = _fixture.CreateApp();
-        var result = _fixture.Run(app, ["import", _importFilePath]);
+        var result = _fixture.Run(app, ["import", _importFilePath, "--merge"]);
 
         Assert.Equal(0, result);
 
         var reloaded = _fixture.ReadConfig();
-        Assert.Equal("New", reloaded.GetResource("svc")!.Name);
+        var entry = reloaded.GetResource("svc");
+        Assert.NotNull(entry);
+        Assert.Equal("Original", entry.Name);
+        Assert.Equal("Container", entry.Mode);
+        Assert.Equal("/original.csproj", entry.ProjectPath);
+        Assert.Equal("new-image", entry.ContainerImage);
+        Assert.Equal("v2", entry.ContainerTag);
+    }
+
+    [Fact]
+    public void Merge_preserves_existing_when_source_has_defaults()
+    {
+        var config = new GlobalConfigFile();
+        config.SetResource("svc", new ResourceEntry
+        {
+            Id = "svc",
+            Name = "Existing",
+            Mode = "Container",
+            ProjectPath = "/path.csproj",
+            BuildImage = true,
+            BuildImageCommand = "dotnet publish"
+        });
+        _fixture.WriteConfig(config);
+
+        var source = new GlobalConfigFile();
+        source.SetResource("svc", new ResourceEntry
+        {
+            Id = "svc",
+            Name = "Updated"
+        });
+        source.Save(_importFilePath);
+
+        var app = _fixture.CreateApp();
+        var result = _fixture.Run(app, ["import", _importFilePath, "--merge"]);
+
+        Assert.Equal(0, result);
+
+        var reloaded = _fixture.ReadConfig();
+        var entry = reloaded.GetResource("svc");
+        Assert.NotNull(entry);
+        Assert.Equal("Updated", entry.Name);
+        Assert.Equal("Container", entry.Mode);
+        Assert.True(entry.BuildImage);
+        Assert.Equal("dotnet publish", entry.BuildImageCommand);
+    }
+
+    [Fact]
+    public void Merge_creates_new_resource_when_not_existing()
+    {
+        _fixture.WriteConfig(new GlobalConfigFile());
+
+        var source = new GlobalConfigFile();
+        source.SetResource("new-svc", new ResourceEntry
+        {
+            Id = "new-svc",
+            Name = "NewSvc",
+            ProjectPath = "/new.csproj"
+        });
+        source.Save(_importFilePath);
+
+        var app = _fixture.CreateApp();
+        var result = _fixture.Run(app, ["import", _importFilePath, "--merge"]);
+
+        Assert.Equal(0, result);
+
+        var reloaded = _fixture.ReadConfig();
+        var entry = reloaded.GetResource("new-svc");
+        Assert.NotNull(entry);
+        Assert.Equal("NewSvc", entry.Name);
     }
 
     [Fact]
