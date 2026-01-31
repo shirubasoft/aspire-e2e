@@ -37,3 +37,18 @@ jobs:
           echo "{\"Aspire\":{\"Resources\":{\"sample-apiservice\":{\"Id\":\"sample-apiservice\",\"Name\":\"SampleApiService\",\"Mode\":\"Container\",\"ContainerImage\":\"sample-apiservice\",\"ContainerTag\":\"latest\",\"ProjectPath\":\"$PROJECT_PATH\",\"BuildImage\":true,\"BuildImageCommand\":\"dotnet publish --os linux --arch x64 /t:PublishContainer\"}}}}" > ~/.aspire-e2e/resources.json
 
       - run: dotnet test --no-build -c Release -p:UseProjectReferences=true
+
+  package-smoke-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Package smoke test
+        run: ./smoke-test-packages.sh
