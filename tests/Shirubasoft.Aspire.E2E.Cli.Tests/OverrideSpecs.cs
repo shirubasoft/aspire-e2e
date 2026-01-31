@@ -109,6 +109,123 @@ public class OverrideApplySpecs
     }
 
     [Fact]
+    public void Image_rewrite_transforms_matching_image()
+    {
+        var config = new GlobalConfigFile();
+        config.Aspire.Overrides = new OverrideSettings
+        {
+            ImageRewrites = new Dictionary<string, string>
+            {
+                ["rabbitmq:4-management"] = "rabbitmq:4"
+            }
+        };
+        config.SetResource("svc", new ResourceEntry { Id = "svc", ContainerImage = "rabbitmq", ContainerTag = "4-management" });
+
+        config.ApplyOverrides();
+
+        Assert.Equal("rabbitmq", config.GetResource("svc")!.ContainerImage);
+        Assert.Equal("4", config.GetResource("svc")!.ContainerTag);
+    }
+
+    [Fact]
+    public void Image_rewrite_matches_image_without_tag()
+    {
+        var config = new GlobalConfigFile();
+        config.Aspire.Overrides = new OverrideSettings
+        {
+            ImageRewrites = new Dictionary<string, string>
+            {
+                ["rabbitmq"] = "myrabbit:latest"
+            }
+        };
+        config.SetResource("svc", new ResourceEntry { Id = "svc", ContainerImage = "rabbitmq" });
+
+        config.ApplyOverrides();
+
+        Assert.Equal("myrabbit", config.GetResource("svc")!.ContainerImage);
+        Assert.Equal("latest", config.GetResource("svc")!.ContainerTag);
+    }
+
+    [Fact]
+    public void Image_rewrite_skips_non_matching()
+    {
+        var config = new GlobalConfigFile();
+        config.Aspire.Overrides = new OverrideSettings
+        {
+            ImageRewrites = new Dictionary<string, string>
+            {
+                ["rabbitmq:4-management"] = "rabbitmq:4"
+            }
+        };
+        config.SetResource("svc", new ResourceEntry { Id = "svc", ContainerImage = "postgres", ContainerTag = "16" });
+
+        config.ApplyOverrides();
+
+        Assert.Equal("postgres", config.GetResource("svc")!.ContainerImage);
+        Assert.Equal("16", config.GetResource("svc")!.ContainerTag);
+    }
+
+    [Fact]
+    public void Image_rewrite_skips_null_ContainerImage()
+    {
+        var config = new GlobalConfigFile();
+        config.Aspire.Overrides = new OverrideSettings
+        {
+            ImageRewrites = new Dictionary<string, string>
+            {
+                ["rabbitmq:4-management"] = "rabbitmq:4"
+            }
+        };
+        config.SetResource("svc", new ResourceEntry { Id = "svc" });
+
+        config.ApplyOverrides();
+
+        Assert.Null(config.GetResource("svc")!.ContainerImage);
+    }
+
+    [Fact]
+    public void Multiple_image_rewrite_rules_work()
+    {
+        var config = new GlobalConfigFile();
+        config.Aspire.Overrides = new OverrideSettings
+        {
+            ImageRewrites = new Dictionary<string, string>
+            {
+                ["rabbitmq:4-management"] = "rabbitmq:4",
+                ["postgres:16-alpine"] = "postgres:16"
+            }
+        };
+        config.SetResource("svc-a", new ResourceEntry { Id = "svc-a", ContainerImage = "rabbitmq", ContainerTag = "4-management" });
+        config.SetResource("svc-b", new ResourceEntry { Id = "svc-b", ContainerImage = "postgres", ContainerTag = "16-alpine" });
+
+        config.ApplyOverrides();
+
+        Assert.Equal("rabbitmq", config.GetResource("svc-a")!.ContainerImage);
+        Assert.Equal("4", config.GetResource("svc-a")!.ContainerTag);
+        Assert.Equal("postgres", config.GetResource("svc-b")!.ContainerImage);
+        Assert.Equal("16", config.GetResource("svc-b")!.ContainerTag);
+    }
+
+    [Fact]
+    public void Image_rewrite_to_value_without_tag_clears_tag()
+    {
+        var config = new GlobalConfigFile();
+        config.Aspire.Overrides = new OverrideSettings
+        {
+            ImageRewrites = new Dictionary<string, string>
+            {
+                ["rabbitmq:4-management"] = "myrabbit"
+            }
+        };
+        config.SetResource("svc", new ResourceEntry { Id = "svc", ContainerImage = "rabbitmq", ContainerTag = "4-management" });
+
+        config.ApplyOverrides();
+
+        Assert.Equal("myrabbit", config.GetResource("svc")!.ContainerImage);
+        Assert.Null(config.GetResource("svc")!.ContainerTag);
+    }
+
+    [Fact]
     public void No_overrides_leaves_resources_unchanged()
     {
         var config = new GlobalConfigFile();
@@ -352,6 +469,86 @@ public class OverrideCommandSpecs : IDisposable
 
         var reloaded = GlobalConfigFile.LoadFile(_fixture.ConfigPath);
         Assert.Null(reloaded.Aspire.Overrides);
+    }
+
+    [Fact]
+    public void Set_with_lowercase_key_works()
+    {
+        _fixture.WriteConfig(new GlobalConfigFile());
+
+        var app = _fixture.CreateApp();
+        var result = _fixture.Run(app, ["override", "set", "mode", "Container"]);
+
+        Assert.Equal(0, result);
+
+        var config = GlobalConfigFile.LoadFile(_fixture.ConfigPath);
+        Assert.Equal("Container", config.Aspire.Overrides?.Mode);
+    }
+
+    [Fact]
+    public void Set_BuildImage_case_insensitive()
+    {
+        _fixture.WriteConfig(new GlobalConfigFile());
+
+        var app = _fixture.CreateApp();
+        var result = _fixture.Run(app, ["override", "set", "buildimage", "true"]);
+
+        Assert.Equal(0, result);
+
+        var config = GlobalConfigFile.LoadFile(_fixture.ConfigPath);
+        Assert.True(config.Aspire.Overrides?.BuildImage);
+    }
+
+    [Fact]
+    public void Remove_with_lowercase_key_works()
+    {
+        var config = new GlobalConfigFile();
+        config.Aspire.Overrides = new OverrideSettings { Mode = "Container" };
+        _fixture.WriteConfig(config);
+
+        var app = _fixture.CreateApp();
+        var result = _fixture.Run(app, ["override", "remove", "mode"]);
+
+        Assert.Equal(0, result);
+
+        var reloaded = GlobalConfigFile.LoadFile(_fixture.ConfigPath);
+        Assert.Null(reloaded.Aspire.Overrides?.Mode);
+    }
+
+    [Fact]
+    public void Set_image_rewrite()
+    {
+        _fixture.WriteConfig(new GlobalConfigFile());
+
+        var app = _fixture.CreateApp();
+        var result = _fixture.Run(app, ["override", "set-image", "rabbitmq:4-management", "rabbitmq:4"]);
+
+        Assert.Equal(0, result);
+
+        var config = GlobalConfigFile.LoadFile(_fixture.ConfigPath);
+        Assert.Equal("rabbitmq:4", config.Aspire.Overrides?.ImageRewrites?["rabbitmq:4-management"]);
+    }
+
+    [Fact]
+    public void Remove_image_rewrite()
+    {
+        var config = new GlobalConfigFile();
+        config.Aspire.Overrides = new OverrideSettings
+        {
+            ImageRewrites = new Dictionary<string, string>
+            {
+                ["rabbitmq:4-management"] = "rabbitmq:4"
+            }
+        };
+        _fixture.WriteConfig(config);
+
+        var app = _fixture.CreateApp();
+        var result = _fixture.Run(app, ["override", "remove-image", "rabbitmq:4-management"]);
+
+        Assert.Equal(0, result);
+
+        var reloaded = GlobalConfigFile.LoadFile(_fixture.ConfigPath);
+        Assert.False(reloaded.Aspire.Overrides?.ImageRewrites?.ContainsKey("rabbitmq:4-management"));
     }
 
     [Fact]

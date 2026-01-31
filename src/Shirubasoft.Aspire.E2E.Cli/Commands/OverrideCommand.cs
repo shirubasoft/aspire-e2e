@@ -23,22 +23,23 @@ public sealed class OverrideSetCommand : Command<OverrideSetCommand.Settings>
         var config = GlobalConfigFile.LoadFile(GlobalConfigFile.ResolveSavePath());
         config.Aspire.Overrides ??= new OverrideSettings();
 
-        switch (settings.Key)
+        if (settings.Key.Equals("Mode", StringComparison.OrdinalIgnoreCase))
         {
-            case "Mode":
-                config.Aspire.Overrides.Mode = settings.Value;
-                break;
-            case "BuildImage":
-                if (!bool.TryParse(settings.Value, out var buildImage))
-                {
-                    AnsiConsole.MarkupLine("[red]BuildImage must be 'true' or 'false'.[/]");
-                    return 1;
-                }
-                config.Aspire.Overrides.BuildImage = buildImage;
-                break;
-            default:
-                AnsiConsole.MarkupLine($"[red]Unknown override key '{settings.Key}'. Valid keys: Mode, BuildImage.[/]");
+            config.Aspire.Overrides.Mode = settings.Value;
+        }
+        else if (settings.Key.Equals("BuildImage", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!bool.TryParse(settings.Value, out var buildImage))
+            {
+                AnsiConsole.MarkupLine("[red]BuildImage must be 'true' or 'false'.[/]");
                 return 1;
+            }
+            config.Aspire.Overrides.BuildImage = buildImage;
+        }
+        else
+        {
+            AnsiConsole.MarkupLine($"[red]Unknown override key '{settings.Key}'. Valid keys: Mode, BuildImage.[/]");
+            return 1;
         }
 
         config.Save();
@@ -92,17 +93,18 @@ public sealed class OverrideRemoveCommand : Command<OverrideRemoveCommand.Settin
             return 0;
         }
 
-        switch (settings.Key)
+        if (settings.Key.Equals("Mode", StringComparison.OrdinalIgnoreCase))
         {
-            case "Mode":
-                config.Aspire.Overrides.Mode = null;
-                break;
-            case "BuildImage":
-                config.Aspire.Overrides.BuildImage = null;
-                break;
-            default:
-                AnsiConsole.MarkupLine($"[red]Unknown override key '{settings.Key}'. Valid keys: Mode, BuildImage.[/]");
-                return 1;
+            config.Aspire.Overrides.Mode = null;
+        }
+        else if (settings.Key.Equals("BuildImage", StringComparison.OrdinalIgnoreCase))
+        {
+            config.Aspire.Overrides.BuildImage = null;
+        }
+        else
+        {
+            AnsiConsole.MarkupLine($"[red]Unknown override key '{settings.Key}'. Valid keys: Mode, BuildImage.[/]");
+            return 1;
         }
 
         config.Save();
@@ -133,6 +135,58 @@ public sealed class OverrideRemoveRegistryCommand : Command<OverrideRemoveRegist
 
         config.Save();
         AnsiConsole.MarkupLine($"[green]Registry rewrite '{settings.From}' removed.[/]");
+        return 0;
+    }
+}
+
+public sealed class OverrideSetImageCommand : Command<OverrideSetImageCommand.Settings>
+{
+    public sealed class Settings : CommandSettings
+    {
+        [CommandArgument(0, "<from>")]
+        [Description("Source image (e.g. rabbitmq:4-management)")]
+        public required string From { get; set; }
+
+        [CommandArgument(1, "<to>")]
+        [Description("Target image (e.g. rabbitmq:4)")]
+        public required string To { get; set; }
+    }
+
+    public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken)
+    {
+        var config = GlobalConfigFile.LoadFile(GlobalConfigFile.ResolveSavePath());
+        config.Aspire.Overrides ??= new OverrideSettings();
+        config.Aspire.Overrides.ImageRewrites ??= new Dictionary<string, string>();
+        config.Aspire.Overrides.ImageRewrites[settings.From] = settings.To;
+
+        config.Save();
+        AnsiConsole.MarkupLine($"[green]Image rewrite '{settings.From}' → '{settings.To}' added.[/]");
+        return 0;
+    }
+}
+
+public sealed class OverrideRemoveImageCommand : Command<OverrideRemoveImageCommand.Settings>
+{
+    public sealed class Settings : CommandSettings
+    {
+        [CommandArgument(0, "<from>")]
+        [Description("Source image to remove")]
+        public required string From { get; set; }
+    }
+
+    public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken)
+    {
+        var config = GlobalConfigFile.LoadFile(GlobalConfigFile.ResolveSavePath());
+
+        if (config.Aspire.Overrides?.ImageRewrites is null ||
+            !config.Aspire.Overrides.ImageRewrites.Remove(settings.From))
+        {
+            AnsiConsole.MarkupLine($"[yellow]Image rewrite '{settings.From}' not found.[/]");
+            return 0;
+        }
+
+        config.Save();
+        AnsiConsole.MarkupLine($"[green]Image rewrite '{settings.From}' removed.[/]");
         return 0;
     }
 }
@@ -184,6 +238,14 @@ public sealed class OverrideListCommand : Command<OverrideListCommand.Settings>
             foreach (var (from, to) in config.Aspire.Overrides.ImageRegistryRewrites)
             {
                 table.AddRow($"ImageRegistryRewrite: {from}", to);
+            }
+        }
+
+        if (config.Aspire.Overrides.ImageRewrites is not null)
+        {
+            foreach (var (from, to) in config.Aspire.Overrides.ImageRewrites)
+            {
+                table.AddRow($"ImageRewrite: {from}", to);
             }
         }
 

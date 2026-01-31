@@ -67,6 +67,16 @@ public sealed class GlobalConfigFile
                 target.Overrides.ImageRegistryRewrites[from] = to;
             }
         }
+
+        if (source.Overrides.ImageRewrites is not null)
+        {
+            target.Overrides.ImageRewrites ??= [];
+
+            foreach (var (from, to) in source.Overrides.ImageRewrites)
+            {
+                target.Overrides.ImageRewrites[from] = to;
+            }
+        }
     }
 
     public void ApplyOverrides()
@@ -95,6 +105,33 @@ public sealed class GlobalConfigFile
                     if (entry.ImageRegistry == from)
                     {
                         entry.ImageRegistry = to;
+                    }
+                }
+            }
+
+            if (Aspire.Overrides.ImageRewrites is not null && entry.ContainerImage is not null)
+            {
+                var fullImage = entry.ContainerTag is not null
+                    ? $"{entry.ContainerImage}:{entry.ContainerTag}"
+                    : entry.ContainerImage;
+
+                foreach (var (from, to) in Aspire.Overrides.ImageRewrites)
+                {
+                    if (fullImage == from)
+                    {
+                        var colonIndex = to.IndexOf(':');
+                        if (colonIndex >= 0)
+                        {
+                            entry.ContainerImage = to[..colonIndex];
+                            entry.ContainerTag = to[(colonIndex + 1)..];
+                        }
+                        else
+                        {
+                            entry.ContainerImage = to;
+                            entry.ContainerTag = null;
+                        }
+
+                        break;
                     }
                 }
             }

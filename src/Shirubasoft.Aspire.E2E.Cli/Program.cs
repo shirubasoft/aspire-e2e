@@ -56,6 +56,12 @@ app.Configure(config =>
         branch.AddCommand<OverrideRemoveRegistryCommand>("remove-registry")
             .WithDescription("Remove a registry rewrite rule");
 
+        branch.AddCommand<OverrideSetImageCommand>("set-image")
+            .WithDescription("Add an image rewrite rule");
+
+        branch.AddCommand<OverrideRemoveImageCommand>("remove-image")
+            .WithDescription("Remove an image rewrite rule");
+
         branch.AddCommand<OverrideListCommand>("list")
             .WithDescription("List current overrides");
 

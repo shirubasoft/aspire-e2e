@@ -160,10 +160,12 @@ aspire-e2e update orders-service --build-image false
 | `aspire-e2e modes` | Interactively toggle Project/Container mode for resources |
 | `aspire-e2e import [path]` | Import resources from an `e2e-resources.json` file |
 | `aspire-e2e clear` | Delete all resources from the global configuration |
-| `aspire-e2e override set <key> <value>` | Set a global override (`Mode` or `BuildImage`) |
+| `aspire-e2e override set <key> <value>` | Set a global override (`Mode` or `BuildImage`, case-insensitive) |
 | `aspire-e2e override set-registry <from> <to>` | Add an image registry rewrite rule |
-| `aspire-e2e override remove <key>` | Remove a global override |
+| `aspire-e2e override set-image <from> <to>` | Add an image rewrite rule (e.g. `rabbitmq:4-management` → `rabbitmq:4`) |
+| `aspire-e2e override remove <key>` | Remove a global override (case-insensitive key) |
 | `aspire-e2e override remove-registry <from>` | Remove a registry rewrite rule |
+| `aspire-e2e override remove-image <from>` | Remove an image rewrite rule |
 | `aspire-e2e override list` | Show current overrides |
 | `aspire-e2e override clear` | Remove all overrides |
 
@@ -179,6 +181,9 @@ Resources are stored in `~/.aspire-e2e/resources.json`:
       "BuildImage": false,
       "ImageRegistryRewrites": {
         "docker.io": "ghcr.io/myorg"
+      },
+      "ImageRewrites": {
+        "rabbitmq:4-management": "rabbitmq:4"
       }
     },
     "Resources": {
@@ -205,6 +210,9 @@ The `Overrides` section applies values to **all** resources at load time without
 - **`Mode`** — overrides the `Mode` on every resource
 - **`BuildImage`** — overrides `BuildImage` on every resource
 - **`ImageRegistryRewrites`** — dictionary of `from → to` rewrites applied to each resource's `ImageRegistry`
+- **`ImageRewrites`** — dictionary of `from → to` rewrites applied to each resource's full image (`ContainerImage:ContainerTag`). For example, `"rabbitmq:4-management": "rabbitmq:4"` rewrites any resource with that exact image and tag.
+
+Override keys in CLI commands (`set`, `remove`) are case-insensitive.
 
 Overrides can also be set in a local `e2e-resources.json` file. Local overrides merge on top of global overrides.
 ```
