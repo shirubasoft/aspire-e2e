@@ -2,6 +2,7 @@ using Shirubasoft.Aspire.E2E.Cli.GlobalConfig;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using System.ComponentModel;
+using System.Xml.Linq;
 
 namespace Shirubasoft.Aspire.E2E.Cli.Commands;
 
@@ -121,8 +122,26 @@ public sealed class SearchCommand : Command<SearchCommand.Settings>
 
     private static bool HasE2EReference(string csprojPath)
     {
-        var content = File.ReadAllText(csprojPath);
-        return content.Contains("Shirubasoft.Aspire.E2E");
+        const string markerPackage = "Shirubasoft.Aspire.E2E";
+        const string markerProjectFile = "Shirubasoft.Aspire.E2E.csproj";
+
+        XDocument doc;
+        try
+        {
+            doc = XDocument.Load(csprojPath);
+        }
+        catch
+        {
+            return false;
+        }
+
+        var ns = doc.Root?.Name.Namespace ?? XNamespace.None;
+
+        return doc.Descendants(ns + "PackageReference")
+                   .Any(e => string.Equals(e.Attribute("Include")?.Value?.Trim(), markerPackage, StringComparison.OrdinalIgnoreCase))
+               || doc.Descendants(ns + "ProjectReference")
+                   .Any(e => e.Attribute("Include")?.Value is { } path
+                              && Path.GetFileName(path).Equals(markerProjectFile, StringComparison.OrdinalIgnoreCase));
     }
 
     private static string ToPascalCase(string input)
