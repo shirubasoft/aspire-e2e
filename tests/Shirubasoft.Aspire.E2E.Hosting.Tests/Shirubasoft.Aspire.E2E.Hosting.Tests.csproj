@@ -9,10 +9,13 @@
   <ItemGroup>
     <PackageReference Include="xunit.v3" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Shirubasoft.Aspire.E2E.Hosting.Generator\Shirubasoft.Aspire.E2E.Hosting.Generator.csproj" />
+    <ProjectReference Include="..\..\src\Shirubasoft.Aspire.E2E.Hosting\Shirubasoft.Aspire.E2E.Hosting.csproj" />
+    <ProjectReference Include="..\..\src\Shirubasoft.Aspire.E2E.Common\Shirubasoft.Aspire.E2E.Common.csproj" />
   </ItemGroup>
 
 </Project>
