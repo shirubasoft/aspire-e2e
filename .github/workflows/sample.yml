@@ -2,7 +2,7 @@ name: Sample
 
 on:
   push:
-    branches: [master]
+    branches: [main]
     paths:
       - 'sample/**'
 
