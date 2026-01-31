@@ -17,10 +17,6 @@ public sealed class SearchCommand : Command<SearchCommand.Settings>
         [Description("Maximum directory depth to search")]
         [DefaultValue(10)]
         public int Depth { get; set; } = 10;
-
-        [CommandOption("--local")]
-        [Description("Save to a local e2e-resources.json file instead of the global config")]
-        public bool Local { get; set; }
     }
 
     public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken)
@@ -41,14 +37,7 @@ public sealed class SearchCommand : Command<SearchCommand.Settings>
             return 0;
         }
 
-        var localConfigPath = settings.Local
-            ? System.IO.Path.Combine(searchPath, GlobalConfigFile.LocalConfigFileName)
-            : null;
-        var config = localConfigPath is not null && File.Exists(localConfigPath)
-            ? GlobalConfigFile.LoadFile(localConfigPath)
-            : settings.Local
-                ? new GlobalConfigFile()
-                : GlobalConfigFile.Load();
+        var config = GlobalConfigFile.Load();
 
         foreach (var project in matchingProjects)
         {
@@ -94,10 +83,8 @@ public sealed class SearchCommand : Command<SearchCommand.Settings>
             config.SetResource(id, entry);
         }
 
-        config.Save(localConfigPath);
-        AnsiConsole.MarkupLine(settings.Local
-            ? $"\n[green]Configuration saved to {localConfigPath}.[/]"
-            : "\n[green]Configuration saved.[/]");
+        config.Save();
+        AnsiConsole.MarkupLine("\n[green]Configuration saved.[/]");
         return 0;
     }
 
