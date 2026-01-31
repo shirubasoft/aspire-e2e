@@ -215,7 +215,6 @@ The `Overrides` section applies values to **all** resources at load time without
 Override keys in CLI commands (`set`, `remove`) are case-insensitive.
 
 Overrides can also be set in a local `e2e-resources.json` file. Local overrides merge on top of global overrides.
-```
 
 ## Requirements
 
