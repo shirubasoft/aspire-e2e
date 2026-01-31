@@ -7,4 +7,31 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <UseProjectReferences Condition="'$(UseProjectReferences)' == ''">true</UseProjectReferences>
   </PropertyGroup>
+
+  <!-- NuGet package metadata -->
+  <PropertyGroup>
+    <Authors>Shirubasoft</Authors>
+    <Copyright>Copyright (c) Shirubasoft 2025</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/shirubasoft/aspire-e2e</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/shirubasoft/aspire-e2e</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>aspire dotnet shared-resources container e2e multi-repo</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+</PropertyGroup>
+
+  <!-- SourceLink and deterministic builds -->
+  <PropertyGroup>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <DebugType>embedded</DebugType>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <!-- Pack README into NuGet packages -->
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
 </Project>

@@ -7,8 +7,9 @@
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Description>MSBuild targets to enable container support for Aspire E2E shared resources.</Description>
+    <IncludeSymbols>false</IncludeSymbols>
     <!-- Suppress warnings for this packaging-only project -->
-    <NoWarn>$(NoWarn);NU5128</NoWarn>
+    <NoWarn>$(NoWarn);NU5128;NU5017</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
