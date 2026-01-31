@@ -33,6 +33,9 @@ app.Configure(config =>
 
     config.AddCommand<ImportCommand>("import")
         .WithDescription("Import resources from an e2e-resources.json file into the global configuration");
+
+    config.AddCommand<ClearCommand>("clear")
+        .WithDescription("Delete all resources from the global configuration");
 });
 
 return app.Run(args);

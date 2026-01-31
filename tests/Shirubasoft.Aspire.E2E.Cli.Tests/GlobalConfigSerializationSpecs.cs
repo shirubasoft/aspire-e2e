@@ -112,3 +112,31 @@ public class GlobalConfigSerializationSpecs
         Assert.Null(entry.ImageRegistry);
     }
 }
+
+public class ClearConfigSpecs
+{
+    [Fact]
+    public void Saving_empty_config_clears_all_resources()
+    {
+        var tempPath = Path.Combine(Path.GetTempPath(), $"aspire-e2e-test-{Guid.NewGuid()}.json");
+
+        try
+        {
+            var config = new GlobalConfigFile();
+            config.SetResource("svc-a", new ResourceEntry { Id = "svc-a" });
+            config.SetResource("svc-b", new ResourceEntry { Id = "svc-b" });
+            config.Save(tempPath);
+
+            // Simulate what ClearCommand does
+            var cleared = new GlobalConfigFile();
+            cleared.Save(tempPath);
+
+            var loaded = GlobalConfigFile.Load(tempPath);
+            Assert.Empty(loaded.Aspire.Resources);
+        }
+        finally
+        {
+            File.Delete(tempPath);
+        }
+    }
+}
