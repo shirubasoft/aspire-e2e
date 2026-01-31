@@ -122,9 +122,8 @@ public class {resource.Name}ProjectMetadata : global::Aspire.Hosting.IProjectMet
 using Aspire.Hosting;
 using Aspire.Hosting.ApplicationModel;
 using Microsoft.Extensions.Configuration;
-using Shirubasoft.Aspire.E2E.Hosting;
 
-namespace Shirubasoft.Aspire.E2E.Hosting.Generated;
+namespace Aspire.Hosting;
 
 public interface I{resource.Name}ResourceBuilder
 {{

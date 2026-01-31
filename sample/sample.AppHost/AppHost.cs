@@ -1,6 +1,4 @@
 using Aspire.Hosting.ApplicationModel;
-using Shirubasoft.Aspire.E2E.Hosting;
-using Shirubasoft.Aspire.E2E.Hosting.Generated;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
