@@ -43,6 +43,7 @@ public sealed class CommandIntegrationFixture : IDisposable
             config.AddCommand<GetModeCommand>("get-mode");
             config.AddCommand<GetProjectPathCommand>("get-project-path");
             config.AddCommand<GetConfigCommand>("get-config");
+            config.AddCommand<ImportCommand>("import");
         });
 
         return app;
@@ -307,4 +308,113 @@ public class GetConfigCommandSpecs : IDisposable
     }
 
     public void Dispose() => _fixture.Dispose();
+}
+
+[Collection("CommandIntegration")]
+public class ImportCommandSpecs : IDisposable
+{
+    private readonly CommandIntegrationFixture _fixture = new();
+    private readonly string _importFilePath;
+
+    public ImportCommandSpecs()
+    {
+        _importFilePath = Path.Combine(Path.GetTempPath(), $"aspire-e2e-import-{Guid.NewGuid()}.json");
+    }
+
+    [Fact]
+    public void Imports_resources_into_global_config()
+    {
+        _fixture.WriteConfig(new GlobalConfigFile());
+
+        var source = new GlobalConfigFile();
+        source.SetResource("imported-svc", new ResourceEntry
+        {
+            Id = "imported-svc",
+            Name = "ImportedSvc",
+            Mode = "Container",
+            ContainerImage = "my-image"
+        });
+        source.Save(_importFilePath);
+
+        var app = _fixture.CreateApp();
+        var result = _fixture.Run(app, ["import", _importFilePath]);
+
+        Assert.Equal(0, result);
+
+        var reloaded = _fixture.ReadConfig();
+        var entry = reloaded.GetResource("imported-svc");
+        Assert.NotNull(entry);
+        Assert.Equal("ImportedSvc", entry.Name);
+        Assert.Equal("Container", entry.Mode);
+    }
+
+    [Fact]
+    public void Merges_with_existing_resources()
+    {
+        var config = new GlobalConfigFile();
+        config.SetResource("existing", new ResourceEntry { Id = "existing", Name = "Existing" });
+        _fixture.WriteConfig(config);
+
+        var source = new GlobalConfigFile();
+        source.SetResource("new-svc", new ResourceEntry { Id = "new-svc", Name = "NewSvc" });
+        source.Save(_importFilePath);
+
+        var app = _fixture.CreateApp();
+        var result = _fixture.Run(app, ["import", _importFilePath]);
+
+        Assert.Equal(0, result);
+
+        var reloaded = _fixture.ReadConfig();
+        Assert.NotNull(reloaded.GetResource("existing"));
+        Assert.NotNull(reloaded.GetResource("new-svc"));
+    }
+
+    [Fact]
+    public void Overwrites_existing_resource_with_same_id()
+    {
+        var config = new GlobalConfigFile();
+        config.SetResource("svc", new ResourceEntry { Id = "svc", Name = "Old" });
+        _fixture.WriteConfig(config);
+
+        var source = new GlobalConfigFile();
+        source.SetResource("svc", new ResourceEntry { Id = "svc", Name = "New" });
+        source.Save(_importFilePath);
+
+        var app = _fixture.CreateApp();
+        var result = _fixture.Run(app, ["import", _importFilePath]);
+
+        Assert.Equal(0, result);
+
+        var reloaded = _fixture.ReadConfig();
+        Assert.Equal("New", reloaded.GetResource("svc")!.Name);
+    }
+
+    [Fact]
+    public void Returns_one_for_nonexistent_file()
+    {
+        var app = _fixture.CreateApp();
+        var result = _fixture.Run(app, ["import", "/nonexistent/path.json"]);
+        Assert.Equal(1, result);
+    }
+
+    [Fact]
+    public void Returns_zero_for_empty_source()
+    {
+        var source = new GlobalConfigFile();
+        source.Save(_importFilePath);
+
+        var app = _fixture.CreateApp();
+        var result = _fixture.Run(app, ["import", _importFilePath]);
+        Assert.Equal(0, result);
+    }
+
+    public void Dispose()
+    {
+        _fixture.Dispose();
+
+        if (File.Exists(_importFilePath))
+        {
+            File.Delete(_importFilePath);
+        }
+    }
 }

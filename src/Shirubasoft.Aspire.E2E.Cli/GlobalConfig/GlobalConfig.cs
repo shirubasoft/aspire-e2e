@@ -68,7 +68,7 @@ public sealed class GlobalConfigFile
         return null;
     }
 
-    internal static GlobalConfigFile LoadFile(string configPath)
+    public static GlobalConfigFile LoadFile(string configPath)
     {
         if (!File.Exists(configPath))
         {
