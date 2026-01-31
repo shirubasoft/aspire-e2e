@@ -26,8 +26,8 @@ jobs:
       - run: dotnet build --no-restore -c Release -p:UseProjectReferences=true
 
       # Build Debug config for project-mode integration tests (Aspire launches projects with Debug)
-      - run: dotnet build --no-restore -c Debug -p:UseProjectReferences=true sample/sample.ApiService/sample.ApiService.csproj
-      - run: dotnet build --no-restore -c Debug -p:UseProjectReferences=true sample/sample.Web/sample.Web.csproj
+      - run: dotnet build -c Debug -p:UseProjectReferences=true sample/sample.ApiService/sample.ApiService.csproj
+      - run: dotnet build -c Debug -p:UseProjectReferences=true sample/sample.Web/sample.Web.csproj
 
       # Install the CLI so the AppHost MSBuild targets can resolve resources
       - name: Install CLI from local build
