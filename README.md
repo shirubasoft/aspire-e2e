@@ -19,17 +19,11 @@ Aspire has no built-in way to do this. You'd need to maintain separate AppHost c
 
 Aspire E2E introduces a `SharedResourceReference` MSBuild item and a global configuration file (`~/.aspire-e2e/resources.json`) that tracks how each shared service should run. A Roslyn source generator creates type-safe builders at compile time, and MSBuild targets handle container image builds automatically.
 
-```
-┌─────────────┐     ┌──────────────────┐     ┌──────────────────┐
-│  CLI tool    │────▶│ ~/.aspire-e2e/   │◀────│  MSBuild targets │
-│ aspire-e2e   │     │ resources.json   │     │  (at build time) │
-└─────────────┘     └──────────────────┘     └──────────────────┘
-                            │
-                            ▼
-                    ┌──────────────────┐
-                    │ Source generator  │
-                    │ (typed builders) │
-                    └──────────────────┘
+```mermaid
+graph TD
+    CLI["CLI tool<br/><code>aspire-e2e</code>"] -->|reads/writes| Config["~/.aspire-e2e/<br/>resources.json"]
+    MSBuild["MSBuild targets<br/>(at build time)"] -->|reads| Config
+    Config -->|feeds| Generator["Source generator<br/>(typed builders)"]
 ```
 
 ## Packages
