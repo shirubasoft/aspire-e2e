@@ -58,6 +58,9 @@ app.Configure(config =>
 
         branch.AddCommand<OverrideListCommand>("list")
             .WithDescription("List current overrides");
+
+        branch.AddCommand<OverrideClearCommand>("clear")
+            .WithDescription("Remove all overrides");
     });
 });
 

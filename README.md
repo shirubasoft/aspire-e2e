@@ -160,6 +160,12 @@ aspire-e2e update orders-service --build-image false
 | `aspire-e2e modes` | Interactively toggle Project/Container mode for resources |
 | `aspire-e2e import [path]` | Import resources from an `e2e-resources.json` file |
 | `aspire-e2e clear` | Delete all resources from the global configuration |
+| `aspire-e2e override set <key> <value>` | Set a global override (`Mode` or `BuildImage`) |
+| `aspire-e2e override set-registry <from> <to>` | Add an image registry rewrite rule |
+| `aspire-e2e override remove <key>` | Remove a global override |
+| `aspire-e2e override remove-registry <from>` | Remove a registry rewrite rule |
+| `aspire-e2e override list` | Show current overrides |
+| `aspire-e2e override clear` | Remove all overrides |
 
 ## Configuration
 
@@ -168,6 +174,13 @@ Resources are stored in `~/.aspire-e2e/resources.json`:
 ```json
 {
   "Aspire": {
+    "Overrides": {
+      "Mode": "Container",
+      "BuildImage": false,
+      "ImageRegistryRewrites": {
+        "docker.io": "ghcr.io/myorg"
+      }
+    },
     "Resources": {
       "payments-service": {
         "Id": "payments-service",
@@ -183,6 +196,17 @@ Resources are stored in `~/.aspire-e2e/resources.json`:
     }
   }
 }
+```
+
+### Overrides
+
+The `Overrides` section applies values to **all** resources at load time without modifying the saved configuration. This is useful for switching every resource to container mode in CI, or rewriting image registries across environments.
+
+- **`Mode`** — overrides the `Mode` on every resource
+- **`BuildImage`** — overrides `BuildImage` on every resource
+- **`ImageRegistryRewrites`** — dictionary of `from → to` rewrites applied to each resource's `ImageRegistry`
+
+Overrides can also be set in a local `e2e-resources.json` file. Local overrides merge on top of global overrides.
 ```
 
 ## Requirements

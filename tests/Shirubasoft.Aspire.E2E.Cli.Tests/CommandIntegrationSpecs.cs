@@ -52,6 +52,7 @@ public sealed class CommandIntegrationFixture : IDisposable
                 branch.AddCommand<OverrideRemoveCommand>("remove");
                 branch.AddCommand<OverrideRemoveRegistryCommand>("remove-registry");
                 branch.AddCommand<OverrideListCommand>("list");
+                branch.AddCommand<OverrideClearCommand>("clear");
             });
         });
 

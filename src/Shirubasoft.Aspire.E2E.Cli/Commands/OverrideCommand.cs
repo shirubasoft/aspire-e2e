@@ -137,6 +137,20 @@ public sealed class OverrideRemoveRegistryCommand : Command<OverrideRemoveRegist
     }
 }
 
+public sealed class OverrideClearCommand : Command<OverrideClearCommand.Settings>
+{
+    public sealed class Settings : CommandSettings;
+
+    public override int Execute(CommandContext context, Settings settings, CancellationToken cancellationToken)
+    {
+        var config = GlobalConfigFile.LoadFile(GlobalConfigFile.ResolveSavePath());
+        config.Aspire.Overrides = null;
+        config.Save();
+        AnsiConsole.MarkupLine("[green]All overrides cleared.[/]");
+        return 0;
+    }
+}
+
 public sealed class OverrideListCommand : Command<OverrideListCommand.Settings>
 {
     public sealed class Settings : CommandSettings;

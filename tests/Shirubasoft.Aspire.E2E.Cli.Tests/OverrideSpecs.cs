@@ -330,5 +330,40 @@ public class OverrideCommandSpecs : IDisposable
         Assert.Equal(0, result);
     }
 
+    [Fact]
+    public void Clear_removes_all_overrides()
+    {
+        var config = new GlobalConfigFile();
+        config.Aspire.Overrides = new OverrideSettings
+        {
+            Mode = "Container",
+            BuildImage = true,
+            ImageRegistryRewrites = new Dictionary<string, string>
+            {
+                ["docker.io"] = "ghcr.io/myorg"
+            }
+        };
+        _fixture.WriteConfig(config);
+
+        var app = _fixture.CreateApp();
+        var result = _fixture.Run(app, ["override", "clear"]);
+
+        Assert.Equal(0, result);
+
+        var reloaded = GlobalConfigFile.LoadFile(_fixture.ConfigPath);
+        Assert.Null(reloaded.Aspire.Overrides);
+    }
+
+    [Fact]
+    public void Clear_succeeds_when_no_overrides_exist()
+    {
+        _fixture.WriteConfig(new GlobalConfigFile());
+
+        var app = _fixture.CreateApp();
+        var result = _fixture.Run(app, ["override", "clear"]);
+
+        Assert.Equal(0, result);
+    }
+
     public void Dispose() => _fixture.Dispose();
 }
