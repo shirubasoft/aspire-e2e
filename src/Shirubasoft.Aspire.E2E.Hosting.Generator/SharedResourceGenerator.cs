@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Text;
+using System.Text.Json;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
@@ -32,25 +33,21 @@ public class SharedResourceGenerator : IIncrementalGenerator
 
     private static ImmutableArray<ResourceDefinition> ParseResources(string json)
     {
-        // Minimal JSON parsing without System.Text.Json (not available in netstandard2.0 analyzer context)
         var builder = ImmutableArray.CreateBuilder<ResourceDefinition>();
-        var entries = json.Split(new[] { '{' }, System.StringSplitOptions.RemoveEmptyEntries);
 
-        foreach (var entry in entries)
+        using var document = JsonDocument.Parse(json);
+
+        foreach (var element in document.RootElement.EnumerateArray())
         {
-            if (!entry.Contains("\"Id\""))
-                continue;
-
-            var id = ExtractJsonValue(entry, "Id");
-            var name = ExtractJsonValue(entry, "Name");
-            var mode = ExtractJsonValue(entry, "Mode");
-            var projectPath = ExtractJsonValue(entry, "ProjectPath");
-            var imageRegistry = ExtractJsonValue(entry, "ImageRegistry");
-
+            var id = GetStringProperty(element, "Id");
             if (string.IsNullOrEmpty(id))
                 continue;
 
-            // Default name to PascalCase of id if not provided
+            var name = GetStringProperty(element, "Name");
+            var mode = GetStringProperty(element, "Mode");
+            var projectPath = GetStringProperty(element, "ProjectPath");
+            var imageRegistry = GetStringProperty(element, "ImageRegistry");
+
             if (string.IsNullOrEmpty(name))
                 name = ToPascalCase(id);
 
@@ -60,19 +57,12 @@ public class SharedResourceGenerator : IIncrementalGenerator
         return builder.ToImmutable();
     }
 
-    private static string ExtractJsonValue(string json, string key)
+    private static string GetStringProperty(JsonElement element, string propertyName)
     {
-        var searchKey = "\"" + key + "\": \"";
-        var startIndex = json.IndexOf(searchKey);
-        if (startIndex < 0)
-            return string.Empty;
+        if (element.TryGetProperty(propertyName, out var value) && value.ValueKind == JsonValueKind.String)
+            return value.GetString() ?? string.Empty;
 
-        startIndex += searchKey.Length;
-        var endIndex = json.IndexOf("\"", startIndex);
-        if (endIndex < 0)
-            return string.Empty;
-
-        return json.Substring(startIndex, endIndex - startIndex);
+        return string.Empty;
     }
 
     private static string ToPascalCase(string input)
