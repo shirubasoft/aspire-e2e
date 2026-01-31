@@ -157,6 +157,9 @@ aspire-e2e update orders-service --skip-image-build true
 | `aspire-e2e get-mode <id>` | Get the current mode (machine-readable) |
 | `aspire-e2e get-project-path <id>` | Get the project path (machine-readable) |
 | `aspire-e2e get-config <id> <key>` | Get a config value (machine-readable) |
+| `aspire-e2e modes` | Interactively toggle Project/Container mode for resources |
+| `aspire-e2e import [path]` | Import resources from an `e2e-resources.json` file |
+| `aspire-e2e clear` | Delete all resources from the global configuration |
 
 ## Configuration
 
@@ -186,7 +189,7 @@ Resources are stored in `~/.aspire-e2e/resources.json`:
 ## Requirements
 
 - .NET 10.0 or later
-- .NET Aspire 9.0 or later
+- .NET Aspire 13.1 or later
 - Docker or Podman (for container mode)
 
 ## Contributing
