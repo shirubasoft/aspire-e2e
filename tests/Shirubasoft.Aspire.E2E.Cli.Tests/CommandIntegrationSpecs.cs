@@ -1,5 +1,5 @@
 using Shirubasoft.Aspire.E2E.Cli.Commands;
-using Shirubasoft.Aspire.E2E.Cli.GlobalConfig;
+using Shirubasoft.Aspire.E2E.Common;
 using Spectre.Console.Cli;
 using Xunit;
 

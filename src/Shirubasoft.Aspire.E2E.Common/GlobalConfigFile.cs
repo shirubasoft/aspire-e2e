@@ -1,8 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Shirubasoft.Aspire.E2E.Common;
 
-namespace Shirubasoft.Aspire.E2E.Cli.GlobalConfig;
+namespace Shirubasoft.Aspire.E2E.Common;
 
 public sealed class GlobalConfigFile
 {
@@ -146,7 +145,17 @@ public sealed class GlobalConfigFile
         }
 
         var json = File.ReadAllText(configPath);
-        return JsonSerializer.Deserialize<GlobalConfigFile>(json, SerializerOptions) ?? new GlobalConfigFile();
+        var config = JsonSerializer.Deserialize<GlobalConfigFile>(json, SerializerOptions) ?? new GlobalConfigFile();
+
+        foreach (var (id, entry) in config.Aspire.Resources)
+        {
+            if (string.IsNullOrEmpty(entry.Id))
+            {
+                entry.Id = id;
+            }
+        }
+
+        return config;
     }
 
     public static string ResolveSavePath(string? path = null)

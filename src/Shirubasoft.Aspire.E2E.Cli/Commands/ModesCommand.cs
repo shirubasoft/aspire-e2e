@@ -1,4 +1,4 @@
-using Shirubasoft.Aspire.E2E.Cli.GlobalConfig;
+using Shirubasoft.Aspire.E2E.Common;
 using Spectre.Console;
 using Spectre.Console.Cli;
 

@@ -1,4 +1,4 @@
-namespace Shirubasoft.Aspire.E2E.Cli.GlobalConfig;
+namespace Shirubasoft.Aspire.E2E.Common;
 
 public sealed class OverrideSettings
 {
