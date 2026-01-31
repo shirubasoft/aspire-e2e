@@ -9,7 +9,9 @@ public sealed class GlobalConfigFile
         Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
         ".aspire-e2e");
 
-    private static readonly string DefaultPath = Path.Combine(DefaultDirectory, "resources.json");
+    private static string DefaultPath =>
+        Environment.GetEnvironmentVariable("ASPIRE_E2E_CONFIG_PATH")
+        ?? Path.Combine(DefaultDirectory, "resources.json");
 
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
