@@ -12,19 +12,49 @@ public static class GlobalConfigurationExtensions
         this IConfigurationBuilder builder,
         string? path = null)
     {
-        var configPath = path ?? ConfigPaths.DefaultConfigPath;
+        var config = GlobalConfigFile.Load(path);
 
-        if (File.Exists(configPath))
+        var kvPairs = new Dictionary<string, string?>();
+
+        foreach (var (id, entry) in config.Aspire.Resources)
         {
-            builder.AddJsonFile(configPath, optional: true, reloadOnChange: true);
+            var prefix = $"Aspire:Resources:{id}";
+            kvPairs[$"{prefix}:Id"] = entry.Id;
+            kvPairs[$"{prefix}:Mode"] = entry.Mode;
+            kvPairs[$"{prefix}:BuildImage"] = entry.BuildImage.ToString();
+
+            if (entry.Name is not null)
+            {
+                kvPairs[$"{prefix}:Name"] = entry.Name;
+            }
+
+            if (entry.ContainerImage is not null)
+            {
+                kvPairs[$"{prefix}:ContainerImage"] = entry.ContainerImage;
+            }
+
+            if (entry.ContainerTag is not null)
+            {
+                kvPairs[$"{prefix}:ContainerTag"] = entry.ContainerTag;
+            }
+
+            if (entry.ProjectPath is not null)
+            {
+                kvPairs[$"{prefix}:ProjectPath"] = entry.ProjectPath;
+            }
+
+            if (entry.BuildImageCommand is not null)
+            {
+                kvPairs[$"{prefix}:BuildImageCommand"] = entry.BuildImageCommand;
+            }
+
+            if (entry.ImageRegistry is not null)
+            {
+                kvPairs[$"{prefix}:ImageRegistry"] = entry.ImageRegistry;
+            }
         }
 
-        var localConfigPath = ConfigPaths.FindLocalConfigFile();
-
-        if (localConfigPath is not null)
-        {
-            builder.AddJsonFile(localConfigPath, optional: true, reloadOnChange: true);
-        }
+        builder.AddInMemoryCollection(kvPairs);
 
         return builder;
     }
