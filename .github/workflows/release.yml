@@ -27,7 +27,13 @@ jobs:
       - run: dotnet restore
       - run: dotnet build --no-restore -c Release
       - run: dotnet test --no-build -c Release
-      - run: dotnet pack --no-build -c Release -o artifacts
+      - name: Pack NuGet packages
+        run: |
+          dotnet pack src/Shirubasoft.Aspire.E2E/Shirubasoft.Aspire.E2E.csproj --no-build -c Release -o artifacts
+          dotnet pack src/Shirubasoft.Aspire.E2E.Hosting/Shirubasoft.Aspire.E2E.Hosting.csproj --no-build -c Release -o artifacts
+          # PackAsTool triggers a spurious NU5017 on .NET 10 SDK — the package is created before the error
+          dotnet pack src/Shirubasoft.Aspire.E2E.Cli/Shirubasoft.Aspire.E2E.Cli.csproj -c Release -o artifacts || true
+          ls artifacts/Shirubasoft.Aspire.E2E.Cli.*.nupkg
 
       - name: Push to NuGet
         run: |
