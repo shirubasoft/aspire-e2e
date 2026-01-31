@@ -1,6 +1,6 @@
 <Solution>
   <Project Path="sample.ApiService/sample.ApiService.csproj" />
-  <Project Path="sample.AppHost/sample.AppHost.csproj" />
+<Project Path="sample.AppHost/sample.AppHost.csproj" />
   <Project Path="sample.ServiceDefaults/sample.ServiceDefaults.csproj" />
   <Project Path="sample.Web/sample.Web.csproj" />
 </Solution>
