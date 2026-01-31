@@ -8,5 +8,6 @@
   <Folder Name="/tests/">
     <Project Path="tests/Shirubasoft.Aspire.E2E.Cli.Tests/Shirubasoft.Aspire.E2E.Cli.Tests.csproj" />
     <Project Path="tests/Shirubasoft.Aspire.E2E.Hosting.Tests/Shirubasoft.Aspire.E2E.Hosting.Tests.csproj" />
+    <Project Path="tests/sample.AppHost.Tests/sample.AppHost.Tests.csproj" />
   </Folder>
 </Solution>
