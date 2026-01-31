@@ -30,6 +30,9 @@ app.Configure(config =>
 
     config.AddCommand<GetConfigCommand>("get-config")
         .WithDescription("Get a configuration property of a registered resource (machine-readable)");
+
+    config.AddCommand<ImportCommand>("import")
+        .WithDescription("Import resources from an e2e-resources.json file into the global configuration");
 });
 
 return app.Run(args);
