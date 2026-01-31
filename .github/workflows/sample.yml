@@ -9,11 +9,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        use-project-references: [true, false]
-
-    name: build (UseProjectReferences=${{ matrix.use-project-references }})
 
     steps:
       - uses: actions/checkout@v4
@@ -24,8 +19,8 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - run: dotnet restore -p:UseProjectReferences=${{ matrix.use-project-references }}
+      - run: dotnet restore
         working-directory: sample
 
-      - run: dotnet build --no-restore -c Release -p:UseProjectReferences=${{ matrix.use-project-references }}
+      - run: dotnet build --no-restore -c Release
         working-directory: sample
