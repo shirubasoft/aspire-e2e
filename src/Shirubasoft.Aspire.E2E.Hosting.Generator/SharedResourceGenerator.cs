@@ -87,8 +87,6 @@ public class SharedResourceGenerator : IIncrementalGenerator
 
     private static void GenerateResourceCode(SourceProductionContext context, ResourceDefinition resource)
     {
-        var hasImageRegistry = !string.IsNullOrEmpty(resource.ImageRegistry);
-
         var isProjectMode = string.Equals(resource.Mode, "Project", System.StringComparison.OrdinalIgnoreCase)
             && !string.IsNullOrEmpty(resource.ProjectPath);
 
@@ -151,10 +149,18 @@ public static class {resource.Name}ResourceExtensions
 
         if (builder.Configuration.GetValue<ResourceMode>(""Aspire:Resources:{resource.Id}:Mode"") == ResourceMode.Container)
         {{
-            resourceBuilder = builder.AddContainer(
+            var containerBuilder = builder.AddContainer(
                 ""{resource.Id}"",
                 builder.Configuration.GetValue<string>(""Aspire:Resources:{resource.Id}:ContainerImage"")!,
                 builder.Configuration.GetValue<string>(""Aspire:Resources:{resource.Id}:ContainerTag"")!);
+
+            var imageRegistry = builder.Configuration.GetValue<string>(""Aspire:Resources:{resource.Id}:ImageRegistry"");
+            if (!string.IsNullOrEmpty(imageRegistry))
+            {{
+                containerBuilder = containerBuilder.WithImageRegistry(imageRegistry);
+            }}
+
+            resourceBuilder = containerBuilder;
         }}
         else
         {{

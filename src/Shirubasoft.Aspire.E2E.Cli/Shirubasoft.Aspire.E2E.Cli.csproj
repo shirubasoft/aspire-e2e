@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <PackAsTool>true</PackAsTool>
-    <ToolCommandName>aspire-e2e</ToolCommandName>
+    <ToolCommandName>a2a</ToolCommandName>
   </PropertyGroup>
 
   <ItemGroup>

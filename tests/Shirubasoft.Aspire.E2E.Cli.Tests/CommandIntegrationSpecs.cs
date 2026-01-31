@@ -1,5 +1,5 @@
 using Shirubasoft.Aspire.E2E.Cli.Commands;
-using Shirubasoft.Aspire.E2E.Cli.GlobalConfig;
+using Shirubasoft.Aspire.E2E.Common;
 using Spectre.Console.Cli;
 using Xunit;
 
@@ -34,7 +34,7 @@ public sealed class CommandIntegrationFixture : IDisposable
         var app = new CommandApp();
         app.Configure(config =>
         {
-            config.SetApplicationName("aspire-e2e");
+            config.SetApplicationName("a2a");
             config.AddCommand<SearchCommand>("search");
             config.AddCommand<ListCommand>("list");
             config.AddCommand<RemoveCommand>("remove");
@@ -44,6 +44,18 @@ public sealed class CommandIntegrationFixture : IDisposable
             config.AddCommand<GetProjectPathCommand>("get-project-path");
             config.AddCommand<GetConfigCommand>("get-config");
             config.AddCommand<ImportCommand>("import");
+
+            config.AddBranch("override", branch =>
+            {
+                branch.AddCommand<OverrideSetCommand>("set");
+                branch.AddCommand<OverrideSetRegistryCommand>("set-registry");
+                branch.AddCommand<OverrideRemoveCommand>("remove");
+                branch.AddCommand<OverrideRemoveRegistryCommand>("remove-registry");
+                branch.AddCommand<OverrideSetImageCommand>("set-image");
+                branch.AddCommand<OverrideRemoveImageCommand>("remove-image");
+                branch.AddCommand<OverrideListCommand>("list");
+                branch.AddCommand<OverrideClearCommand>("clear");
+            });
         });
 
         return app;

@@ -1,8 +1,8 @@
-namespace Shirubasoft.Aspire.E2E.Cli.GlobalConfig;
+namespace Shirubasoft.Aspire.E2E.Common;
 
 public sealed class ResourceEntry
 {
-    public required string Id { get; set; }
+    public string Id { get; set; } = string.Empty;
     public string? Name { get; set; }
     public string Mode { get; set; } = "Project";
     public string? ContainerImage { get; set; }

@@ -53,7 +53,7 @@ internal sealed class MsBuildTestFixture : IDisposable
         sb.AppendLine("  exit 1");
         sb.AppendLine("fi");
 
-        var scriptPath = Path.Combine(_fakeCliDir, "aspire-e2e");
+        var scriptPath = Path.Combine(_fakeCliDir, "a2a");
         File.WriteAllText(scriptPath, sb.ToString());
 
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -85,7 +85,7 @@ internal sealed class MsBuildTestFixture : IDisposable
         sb.AppendLine("  exit /b 1");
         sb.AppendLine(")");
 
-        var scriptPath = Path.Combine(_fakeCliDir, "aspire-e2e.cmd");
+        var scriptPath = Path.Combine(_fakeCliDir, "a2a.cmd");
         File.WriteAllText(scriptPath, sb.ToString());
     }
 

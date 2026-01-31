@@ -5,7 +5,7 @@ var app = new CommandApp();
 
 app.Configure(config =>
 {
-    config.SetApplicationName("aspire-e2e");
+    config.SetApplicationName("a2a");
 
     config.AddCommand<SearchCommand>("search")
         .WithDescription("Search for projects referencing Shirubasoft.Aspire.E2E and register them");
@@ -39,6 +39,35 @@ app.Configure(config =>
 
     config.AddCommand<ClearCommand>("clear")
         .WithDescription("Delete all resources from the global configuration");
+
+    config.AddBranch("override", branch =>
+    {
+        branch.SetDescription("Manage global overrides");
+
+        branch.AddCommand<OverrideSetCommand>("set")
+            .WithDescription("Set an override (Mode or BuildImage)");
+
+        branch.AddCommand<OverrideSetRegistryCommand>("set-registry")
+            .WithDescription("Add a registry rewrite rule");
+
+        branch.AddCommand<OverrideRemoveCommand>("remove")
+            .WithDescription("Remove an override");
+
+        branch.AddCommand<OverrideRemoveRegistryCommand>("remove-registry")
+            .WithDescription("Remove a registry rewrite rule");
+
+        branch.AddCommand<OverrideSetImageCommand>("set-image")
+            .WithDescription("Add an image rewrite rule");
+
+        branch.AddCommand<OverrideRemoveImageCommand>("remove-image")
+            .WithDescription("Remove an image rewrite rule");
+
+        branch.AddCommand<OverrideListCommand>("list")
+            .WithDescription("List current overrides");
+
+        branch.AddCommand<OverrideClearCommand>("clear")
+            .WithDescription("Remove all overrides");
+    });
 });
 
 return app.Run(args);

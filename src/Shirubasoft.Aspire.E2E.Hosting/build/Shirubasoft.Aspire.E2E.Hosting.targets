@@ -3,7 +3,7 @@
           Condition="'@(SharedResourceReference)' != ''"
           Outputs="%(SharedResourceReference.Identity)">
 
-    <Exec Command="aspire-e2e get-mode %(SharedResourceReference.Identity)"
+    <Exec Command="a2a get-mode %(SharedResourceReference.Identity)"
           ConsoleToMSBuild="true"
           IgnoreExitCode="true"
           StandardOutputImportance="low">
@@ -15,7 +15,7 @@
       <_ResolvedModeIsProject>$([System.String]::Equals($(_ResolvedMode), 'Project', System.StringComparison.OrdinalIgnoreCase))</_ResolvedModeIsProject>
     </PropertyGroup>
 
-    <Exec Command="aspire-e2e get-project-path %(SharedResourceReference.Identity)"
+    <Exec Command="a2a get-project-path %(SharedResourceReference.Identity)"
           ConsoleToMSBuild="true"
           IgnoreExitCode="true"
           StandardOutputImportance="low"
@@ -40,7 +40,7 @@
           Condition="'@(SharedResourceReference)' != ''"
           Outputs="%(SharedResourceReference.Identity)">
 
-    <Exec Command="aspire-e2e get-config %(SharedResourceReference.Identity) BuildImage"
+    <Exec Command="a2a get-config %(SharedResourceReference.Identity) BuildImage"
           ConsoleToMSBuild="true"
           IgnoreExitCode="true"
           StandardOutputImportance="low"
@@ -52,7 +52,7 @@
              Importance="high"
              Condition="'$([System.String]::Equals(%(SharedResourceReference.Mode), `Container`, System.StringComparison.OrdinalIgnoreCase))' == 'True' AND '$(_BuildImage)' == 'True'" />
 
-    <Exec Command="aspire-e2e build %(SharedResourceReference.Identity)"
+    <Exec Command="a2a build %(SharedResourceReference.Identity)"
           Condition="'$([System.String]::Equals(%(SharedResourceReference.Mode), `Container`, System.StringComparison.OrdinalIgnoreCase))' == 'True' AND '$(_BuildImage)' == 'True'"
           StandardOutputImportance="high"
           StandardErrorImportance="high" />

@@ -89,6 +89,8 @@ public class ImageRegistryGenerationSpecs
 
         Assert.Single(sources);
         Assert.Contains("AddApiService", sources[0]);
+        Assert.Contains("WithImageRegistry", sources[0]);
+        Assert.Contains("Aspire:Resources:apiservice:ImageRegistry", sources[0]);
     }
 
     [Fact]
@@ -113,6 +115,9 @@ public class ImageRegistryGenerationSpecs
 
         var results = driver.GetRunResult();
         Assert.Single(results.GeneratedTrees);
+
+        var source = results.GeneratedTrees[0].GetText(TestContext.Current.CancellationToken).ToString();
+        Assert.Contains("WithImageRegistry", source);
     }
 }
 

@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" />
   </ItemGroup>
 
   <ItemGroup>
