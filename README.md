@@ -21,7 +21,7 @@ Aspire E2E introduces a `SharedResourceReference` MSBuild item and a global conf
 
 ```mermaid
 graph TD
-    CLI["CLI tool<br/><code>aspire-e2e</code>"] -->|reads/writes| Config["~/.aspire-e2e/<br/>resources.json"]
+    CLI["CLI tool<br/><code>a2a</code>"] -->|reads/writes| Config["~/.aspire-e2e/<br/>resources.json"]
     MSBuild["MSBuild targets<br/>(at build time)"] -->|reads| Config
     Config -->|feeds| Generator["Source generator<br/>(typed builders)"]
 ```
@@ -57,13 +57,13 @@ This enables `dotnet publish` to produce a container image for the project.
 Use the CLI to discover and register the service:
 
 ```bash
-aspire-e2e search /path/to/payments-repo
+a2a search /path/to/payments-repo
 ```
 
 This finds projects referencing `Shirubasoft.Aspire.E2E` and adds them to your global config. You can then configure each resource:
 
 ```bash
-aspire-e2e update payments-service
+a2a update payments-service
 ```
 
 ### 4. Reference the shared service in your AppHost
@@ -111,10 +111,10 @@ A team owns `orders-service` in its own repo. Other teams reference it in their 
 
 ```bash
 # In orders repo — set mode to Project
-aspire-e2e update orders-service --mode Project
+a2a update orders-service --mode Project
 
 # In frontend repo — set mode to Container
-aspire-e2e update orders-service --mode Container
+a2a update orders-service --mode Container
 ```
 
 ### CI/CD container builds
@@ -122,7 +122,7 @@ aspire-e2e update orders-service --mode Container
 The CLI can build container images with git-aware tagging:
 
 ```bash
-aspire-e2e build payments-service
+a2a build payments-service
 ```
 
 This runs the configured build command, tags the image with the current git branch and commit hash, and updates the global config with the new tag.
@@ -132,9 +132,9 @@ This runs the configured build command, tags the image with the current git bran
 Temporarily switch a dependency to project mode for debugging, then switch back:
 
 ```bash
-aspire-e2e update payments-service --mode Project --project-path /path/to/payments.csproj
+a2a update payments-service --mode Project --project-path /path/to/payments.csproj
 # ... debug the issue ...
-aspire-e2e update payments-service --mode Container
+a2a update payments-service --mode Container
 ```
 
 ### Skip image builds for faster iteration
@@ -142,32 +142,32 @@ aspire-e2e update payments-service --mode Container
 When iterating on your own service, skip rebuilding container images for dependencies:
 
 ```bash
-aspire-e2e update orders-service --build-image false
+a2a update orders-service --build-image false
 ```
 
 ## CLI Commands
 
 | Command | Description |
 |---------|-------------|
-| `aspire-e2e search [path]` | Find projects referencing the E2E package |
-| `aspire-e2e list` | Show all registered resources |
-| `aspire-e2e update <id>` | Update a resource configuration |
-| `aspire-e2e remove <id>` | Remove a resource |
-| `aspire-e2e build <id>` | Build a container image with git tagging |
-| `aspire-e2e get-mode <id>` | Get the current mode (machine-readable) |
-| `aspire-e2e get-project-path <id>` | Get the project path (machine-readable) |
-| `aspire-e2e get-config <id> <key>` | Get a config value (machine-readable) |
-| `aspire-e2e modes` | Interactively toggle Project/Container mode for resources |
-| `aspire-e2e import [path]` | Import resources from an `e2e-resources.json` file |
-| `aspire-e2e clear` | Delete all resources from the global configuration |
-| `aspire-e2e override set <key> <value>` | Set a global override (`Mode` or `BuildImage`, case-insensitive) |
-| `aspire-e2e override set-registry <from> <to>` | Add an image registry rewrite rule |
-| `aspire-e2e override set-image <from> <to>` | Add an image rewrite rule (e.g. `rabbitmq:4-management` → `rabbitmq:4`) |
-| `aspire-e2e override remove <key>` | Remove a global override (case-insensitive key) |
-| `aspire-e2e override remove-registry <from>` | Remove a registry rewrite rule |
-| `aspire-e2e override remove-image <from>` | Remove an image rewrite rule |
-| `aspire-e2e override list` | Show current overrides |
-| `aspire-e2e override clear` | Remove all overrides |
+| `a2a search [path]` | Find projects referencing the E2E package |
+| `a2a list` | Show all registered resources |
+| `a2a update <id>` | Update a resource configuration |
+| `a2a remove <id>` | Remove a resource |
+| `a2a build <id>` | Build a container image with git tagging |
+| `a2a get-mode <id>` | Get the current mode (machine-readable) |
+| `a2a get-project-path <id>` | Get the project path (machine-readable) |
+| `a2a get-config <id> <key>` | Get a config value (machine-readable) |
+| `a2a modes` | Interactively toggle Project/Container mode for resources |
+| `a2a import [path]` | Import resources from an `e2e-resources.json` file |
+| `a2a clear` | Delete all resources from the global configuration |
+| `a2a override set <key> <value>` | Set a global override (`Mode` or `BuildImage`, case-insensitive) |
+| `a2a override set-registry <from> <to>` | Add an image registry rewrite rule |
+| `a2a override set-image <from> <to>` | Add an image rewrite rule (e.g. `rabbitmq:4-management` → `rabbitmq:4`) |
+| `a2a override remove <key>` | Remove a global override (case-insensitive key) |
+| `a2a override remove-registry <from>` | Remove a registry rewrite rule |
+| `a2a override remove-image <from>` | Remove an image rewrite rule |
+| `a2a override list` | Show current overrides |
+| `a2a override clear` | Remove all overrides |
 
 ## Configuration
 

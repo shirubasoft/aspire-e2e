@@ -5,7 +5,7 @@ var app = new CommandApp();
 
 app.Configure(config =>
 {
-    config.SetApplicationName("aspire-e2e");
+    config.SetApplicationName("a2a");
 
     config.AddCommand<SearchCommand>("search")
         .WithDescription("Search for projects referencing Shirubasoft.Aspire.E2E and register them");

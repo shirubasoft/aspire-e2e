@@ -34,7 +34,7 @@ public sealed class CommandIntegrationFixture : IDisposable
         var app = new CommandApp();
         app.Configure(config =>
         {
-            config.SetApplicationName("aspire-e2e");
+            config.SetApplicationName("a2a");
             config.AddCommand<SearchCommand>("search");
             config.AddCommand<ListCommand>("list");
             config.AddCommand<RemoveCommand>("remove");
