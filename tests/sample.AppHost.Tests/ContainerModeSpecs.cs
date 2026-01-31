@@ -8,7 +8,7 @@ using Xunit;
 
 namespace sample.AppHost.Tests;
 
-public class ContainerModeSpecs : IAsyncDisposable
+public class ContainerModeFixture : IAsyncLifetime
 {
     private const string ContainerImage = "sample-apiservice";
     private const string ContainerTag = "latest";
@@ -18,12 +18,20 @@ public class ContainerModeSpecs : IAsyncDisposable
         ".aspire-e2e",
         "resources.json");
 
-    private IDistributedApplicationTestingBuilder? _builder;
-    private DistributedApplication? _app;
+    public IDistributedApplicationTestingBuilder Builder { get; private set; } = null!;
+    public DistributedApplication App { get; private set; } = null!;
+    public bool ImageAvailable { get; private set; }
+
     private string? _originalConfig;
 
-    private async Task<(IDistributedApplicationTestingBuilder builder, DistributedApplication app)> StartAppAsync()
+    public async ValueTask InitializeAsync()
     {
+        ImageAvailable = await IsDockerImageAvailableAsync();
+        if (!ImageAvailable)
+        {
+            return;
+        }
+
         _originalConfig = File.Exists(GlobalConfigPath) ? await File.ReadAllTextAsync(GlobalConfigPath) : null;
 
         var testConfig = new
@@ -45,41 +53,33 @@ public class ContainerModeSpecs : IAsyncDisposable
         Directory.CreateDirectory(Path.GetDirectoryName(GlobalConfigPath)!);
         await File.WriteAllTextAsync(GlobalConfigPath, JsonSerializer.Serialize(testConfig));
 
-        _builder = await DistributedApplicationTestingBuilder
+        Builder = await DistributedApplicationTestingBuilder
             .CreateAsync<Projects.sample_AppHost>();
 
-        _app = await _builder.BuildAsync();
+        App = await Builder.BuildAsync();
         var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-        await _app.StartAsync(cts.Token);
-        return (_builder, _app);
+        await App.StartAsync(cts.Token);
     }
 
-    [Fact]
-    public async Task ApiServiceResourceIsContainer()
+    public async ValueTask DisposeAsync()
     {
-        Assert.SkipUnless(await IsDockerImageAvailableAsync(), "Container image not available. Build it first.");
+        if (!ImageAvailable)
+        {
+            return;
+        }
 
-        var (builder, _) = await StartAppAsync();
+        var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        await App.StopAsync(cts.Token);
+        await App.DisposeAsync();
 
-        var resource = builder.Resources.Single(r => r.Name == "sample-apiservice");
-        Assert.IsAssignableFrom<ContainerResource>(resource);
-    }
-
-    [Fact]
-    public async Task ApiServiceHealthEndpointReturnsOk()
-    {
-        Assert.SkipUnless(await IsDockerImageAvailableAsync(), "Container image not available. Build it first.");
-
-        var (_, app) = await StartAppAsync();
-
-        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
-        await app.ResourceNotifications
-            .WaitForResourceHealthyAsync("sample-apiservice", cts.Token);
-
-        var httpClient = app.CreateHttpClient("sample-apiservice");
-        var response = await httpClient.GetAsync("/health", cts.Token);
-
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        if (_originalConfig is not null)
+        {
+            await File.WriteAllTextAsync(GlobalConfigPath, _originalConfig);
+        }
+        else if (File.Exists(GlobalConfigPath))
+        {
+            File.Delete(GlobalConfigPath);
+        }
     }
 
     private static async Task<bool> IsDockerImageAvailableAsync()
@@ -106,23 +106,38 @@ public class ContainerModeSpecs : IAsyncDisposable
             return false;
         }
     }
+}
 
-    public async ValueTask DisposeAsync()
+public class ContainerModeSpecs : IClassFixture<ContainerModeFixture>
+{
+    private readonly ContainerModeFixture _fixture;
+
+    public ContainerModeSpecs(ContainerModeFixture fixture)
     {
-        if (_app is not null)
-        {
-            var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-            await _app.StopAsync(cts.Token);
-            await _app.DisposeAsync();
-        }
+        _fixture = fixture;
+    }
 
-        if (_originalConfig is not null)
-        {
-            await File.WriteAllTextAsync(GlobalConfigPath, _originalConfig);
-        }
-        else if (File.Exists(GlobalConfigPath))
-        {
-            File.Delete(GlobalConfigPath);
-        }
+    [Fact]
+    public void ApiServiceResourceIsContainer()
+    {
+        Assert.SkipUnless(_fixture.ImageAvailable, "Container image not available. Build it first.");
+
+        var resource = _fixture.Builder.Resources.Single(r => r.Name == "sample-apiservice");
+        Assert.IsAssignableFrom<ContainerResource>(resource);
+    }
+
+    [Fact]
+    public async Task ApiServiceHealthEndpointReturnsOk()
+    {
+        Assert.SkipUnless(_fixture.ImageAvailable, "Container image not available. Build it first.");
+
+        using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+        await _fixture.App.ResourceNotifications
+            .WaitForResourceHealthyAsync("sample-apiservice", cts.Token);
+
+        var httpClient = _fixture.App.CreateHttpClient("sample-apiservice");
+        var response = await httpClient.GetAsync("/health", cts.Token);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 }
