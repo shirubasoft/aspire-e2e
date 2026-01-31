@@ -44,6 +44,15 @@ public sealed class CommandIntegrationFixture : IDisposable
             config.AddCommand<GetProjectPathCommand>("get-project-path");
             config.AddCommand<GetConfigCommand>("get-config");
             config.AddCommand<ImportCommand>("import");
+
+            config.AddBranch("override", branch =>
+            {
+                branch.AddCommand<OverrideSetCommand>("set");
+                branch.AddCommand<OverrideSetRegistryCommand>("set-registry");
+                branch.AddCommand<OverrideRemoveCommand>("remove");
+                branch.AddCommand<OverrideRemoveRegistryCommand>("remove-registry");
+                branch.AddCommand<OverrideListCommand>("list");
+            });
         });
 
         return app;

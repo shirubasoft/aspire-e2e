@@ -39,6 +39,26 @@ app.Configure(config =>
 
     config.AddCommand<ClearCommand>("clear")
         .WithDescription("Delete all resources from the global configuration");
+
+    config.AddBranch("override", branch =>
+    {
+        branch.SetDescription("Manage global overrides");
+
+        branch.AddCommand<OverrideSetCommand>("set")
+            .WithDescription("Set an override (Mode or BuildImage)");
+
+        branch.AddCommand<OverrideSetRegistryCommand>("set-registry")
+            .WithDescription("Add a registry rewrite rule");
+
+        branch.AddCommand<OverrideRemoveCommand>("remove")
+            .WithDescription("Remove an override");
+
+        branch.AddCommand<OverrideRemoveRegistryCommand>("remove-registry")
+            .WithDescription("Remove a registry rewrite rule");
+
+        branch.AddCommand<OverrideListCommand>("list")
+            .WithDescription("List current overrides");
+    });
 });
 
 return app.Run(args);

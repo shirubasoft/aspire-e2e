@@ -22,6 +22,7 @@ public sealed class GlobalConfigFile
 
         if (localPath is null)
         {
+            global.ApplyOverrides();
             return global;
         }
 
@@ -32,7 +33,72 @@ public sealed class GlobalConfigFile
             global.Aspire.Resources[id] = entry;
         }
 
+        MergeOverrides(global.Aspire, local.Aspire);
+        global.ApplyOverrides();
+
         return global;
+    }
+
+    private static void MergeOverrides(AspireConfig target, AspireConfig source)
+    {
+        if (source.Overrides is null)
+        {
+            return;
+        }
+
+        target.Overrides ??= new OverrideSettings();
+
+        if (source.Overrides.Mode is not null)
+        {
+            target.Overrides.Mode = source.Overrides.Mode;
+        }
+
+        if (source.Overrides.BuildImage is not null)
+        {
+            target.Overrides.BuildImage = source.Overrides.BuildImage;
+        }
+
+        if (source.Overrides.ImageRegistryRewrites is not null)
+        {
+            target.Overrides.ImageRegistryRewrites ??= [];
+
+            foreach (var (from, to) in source.Overrides.ImageRegistryRewrites)
+            {
+                target.Overrides.ImageRegistryRewrites[from] = to;
+            }
+        }
+    }
+
+    public void ApplyOverrides()
+    {
+        if (Aspire.Overrides is null)
+        {
+            return;
+        }
+
+        foreach (var entry in Aspire.Resources.Values)
+        {
+            if (Aspire.Overrides.Mode is not null)
+            {
+                entry.Mode = Aspire.Overrides.Mode;
+            }
+
+            if (Aspire.Overrides.BuildImage is not null)
+            {
+                entry.BuildImage = Aspire.Overrides.BuildImage.Value;
+            }
+
+            if (Aspire.Overrides.ImageRegistryRewrites is not null && entry.ImageRegistry is not null)
+            {
+                foreach (var (from, to) in Aspire.Overrides.ImageRegistryRewrites)
+                {
+                    if (entry.ImageRegistry == from)
+                    {
+                        entry.ImageRegistry = to;
+                    }
+                }
+            }
+        }
     }
 
     public static GlobalConfigFile LoadFile(string configPath)
@@ -44,6 +110,11 @@ public sealed class GlobalConfigFile
 
         var json = File.ReadAllText(configPath);
         return JsonSerializer.Deserialize<GlobalConfigFile>(json, SerializerOptions) ?? new GlobalConfigFile();
+    }
+
+    public static string ResolveSavePath(string? path = null)
+    {
+        return path ?? ConfigPaths.DefaultConfigPath;
     }
 
     public void Save(string? path = null)
@@ -79,5 +150,6 @@ public sealed class GlobalConfigFile
 
 public sealed class AspireConfig
 {
-    public Dictionary<string, ResourceEntry> Resources { get; set; } = new();
+    public OverrideSettings? Overrides { get; set; }
+    public Dictionary<string, ResourceEntry> Resources { get; set; } = [];
 }
