@@ -263,7 +263,6 @@ public class GetConfigCommandSpecs : IDisposable
     [InlineData("ContainerTag", "v1")]
     [InlineData("ProjectPath", "/path/to/project.csproj")]
     [InlineData("BuildImage", "True")]
-    [InlineData("SkipImageBuild", "False")]
     public void Returns_zero_for_valid_keys(string key, string _)
     {
         var config = new GlobalConfigFile();

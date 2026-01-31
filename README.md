@@ -142,7 +142,7 @@ aspire-e2e update payments-service --mode Container
 When iterating on your own service, skip rebuilding container images for dependencies:
 
 ```bash
-aspire-e2e update orders-service --skip-image-build true
+aspire-e2e update orders-service --build-image false
 ```
 
 ## CLI Commands
@@ -178,7 +178,6 @@ Resources are stored in `~/.aspire-e2e/resources.json`:
         "ContainerTag": "main-abc1234",
         "BuildImage": true,
         "BuildImageCommand": "dotnet publish --os linux --arch x64 /t:PublishContainer",
-        "SkipImageBuild": false,
         "ImageRegistry": "ghcr.io/myorg"
       }
     }

@@ -40,26 +40,26 @@
           Condition="'@(SharedResourceReference)' != ''"
           Outputs="%(SharedResourceReference.Identity)">
 
-    <Exec Command="aspire-e2e get-config %(SharedResourceReference.Identity) SkipImageBuild"
+    <Exec Command="aspire-e2e get-config %(SharedResourceReference.Identity) BuildImage"
           ConsoleToMSBuild="true"
           IgnoreExitCode="true"
           StandardOutputImportance="low"
           Condition="'$([System.String]::Equals(%(SharedResourceReference.Mode), `Container`, System.StringComparison.OrdinalIgnoreCase))' == 'True'">
-      <Output TaskParameter="ConsoleOutput" PropertyName="_SkipImageBuild" />
+      <Output TaskParameter="ConsoleOutput" PropertyName="_BuildImage" />
     </Exec>
 
     <Message Text="Building container image for '%(SharedResourceReference.Identity)'..."
              Importance="high"
-             Condition="'$([System.String]::Equals(%(SharedResourceReference.Mode), `Container`, System.StringComparison.OrdinalIgnoreCase))' == 'True' AND '$(_SkipImageBuild)' != 'True'" />
+             Condition="'$([System.String]::Equals(%(SharedResourceReference.Mode), `Container`, System.StringComparison.OrdinalIgnoreCase))' == 'True' AND '$(_BuildImage)' == 'True'" />
 
     <Exec Command="aspire-e2e build %(SharedResourceReference.Identity)"
-          Condition="'$([System.String]::Equals(%(SharedResourceReference.Mode), `Container`, System.StringComparison.OrdinalIgnoreCase))' == 'True' AND '$(_SkipImageBuild)' != 'True'"
+          Condition="'$([System.String]::Equals(%(SharedResourceReference.Mode), `Container`, System.StringComparison.OrdinalIgnoreCase))' == 'True' AND '$(_BuildImage)' == 'True'"
           StandardOutputImportance="high"
           StandardErrorImportance="high" />
 
-    <Message Text="Skipping image build for '%(SharedResourceReference.Identity)' (SkipImageBuild=true)."
+    <Message Text="Skipping image build for '%(SharedResourceReference.Identity)' (BuildImage=false)."
              Importance="high"
-             Condition="'$([System.String]::Equals(%(SharedResourceReference.Mode), `Container`, System.StringComparison.OrdinalIgnoreCase))' == 'True' AND '$(_SkipImageBuild)' == 'True'" />
+             Condition="'$([System.String]::Equals(%(SharedResourceReference.Mode), `Container`, System.StringComparison.OrdinalIgnoreCase))' == 'True' AND '$(_BuildImage)' != 'True'" />
   </Target>
 
   <Target Name="_SerializeSharedResourceReferences" BeforeTargets="CoreCompile"

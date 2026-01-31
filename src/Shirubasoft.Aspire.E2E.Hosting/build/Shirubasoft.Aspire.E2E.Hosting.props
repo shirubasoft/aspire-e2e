@@ -8,7 +8,6 @@
       <ContainerTag></ContainerTag>
       <BuildImageCommand></BuildImageCommand>
       <BuildImage>false</BuildImage>
-      <SkipImageBuild>false</SkipImageBuild>
       <ImageRegistry></ImageRegistry>
     </SharedResourceReference>
   </ItemDefinitionGroup>

@@ -68,7 +68,7 @@ public class GlobalConfigSerializationSpecs
     }
 
     [Fact]
-    public void Round_trips_SkipImageBuild_and_ImageRegistry()
+    public void Round_trips_ImageRegistry()
     {
         var tempPath = Path.Combine(Path.GetTempPath(), $"aspire-e2e-test-{Guid.NewGuid()}.json");
 
@@ -79,7 +79,7 @@ public class GlobalConfigSerializationSpecs
             {
                 Id = "registry-svc",
                 Mode = "Container",
-                SkipImageBuild = true,
+                BuildImage = false,
                 ImageRegistry = "ghcr.io/myorg"
             });
 
@@ -89,20 +89,13 @@ public class GlobalConfigSerializationSpecs
             var entry = loaded.GetResource("registry-svc");
 
             Assert.NotNull(entry);
-            Assert.True(entry.SkipImageBuild);
+            Assert.False(entry.BuildImage);
             Assert.Equal("ghcr.io/myorg", entry.ImageRegistry);
         }
         finally
         {
             File.Delete(tempPath);
         }
-    }
-
-    [Fact]
-    public void SkipImageBuild_defaults_to_false()
-    {
-        var entry = new ResourceEntry { Id = "test" };
-        Assert.False(entry.SkipImageBuild);
     }
 
     [Fact]

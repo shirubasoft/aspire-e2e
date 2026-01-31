@@ -12,7 +12,7 @@ public class ContainerModeBuildSpecs : IDisposable
         _fixture.WriteFakeCli(new Dictionary<string, (string, int)>
         {
             ["get-mode myapi"] = ("Container", 0),
-            ["get-config myapi SkipImageBuild"] = ("False", 0),
+            ["get-config myapi BuildImage"] = ("True", 0),
             ["build myapi"] = ("image-built", 0),
         });
 
@@ -35,12 +35,12 @@ public class SkipImageBuildSpecs : IDisposable
     private readonly MsBuildTestFixture _fixture = new();
 
     [Fact]
-    public void Skips_build_when_SkipImageBuild_is_true()
+    public void Skips_build_when_BuildImage_is_false()
     {
         _fixture.WriteFakeCli(new Dictionary<string, (string, int)>
         {
             ["get-mode myapi"] = ("Container", 0),
-            ["get-config myapi SkipImageBuild"] = ("True", 0),
+            ["get-config myapi BuildImage"] = ("False", 0),
         });
 
         _fixture.WriteTestProject([
@@ -50,7 +50,7 @@ public class SkipImageBuildSpecs : IDisposable
         var (output, exitCode) = _fixture.RunMsBuildTarget("_BuildSharedResourceContainerImages");
 
         Assert.True(exitCode == 0, $"MSBuild failed (exit {exitCode}):\n{output}");
-        Assert.Contains("Skipping image build for 'myapi'", output);
+        Assert.Contains("Skipping image build for 'myapi' (BuildImage=false)", output);
         Assert.DoesNotContain("Building container image", output);
     }
 
