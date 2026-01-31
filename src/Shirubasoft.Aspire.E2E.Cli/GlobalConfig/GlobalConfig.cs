@@ -5,6 +5,8 @@ namespace Shirubasoft.Aspire.E2E.Cli.GlobalConfig;
 
 public sealed class GlobalConfigFile
 {
+    public const string LocalConfigFileName = "e2e-resources.json";
+
     private static readonly string DefaultDirectory = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
         ".aspire-e2e");
@@ -24,8 +26,50 @@ public sealed class GlobalConfigFile
 
     public static GlobalConfigFile Load(string? path = null)
     {
-        var configPath = path ?? DefaultPath;
+        var global = LoadFile(path ?? DefaultPath);
+        var localPath = FindLocalConfigFile();
 
+        if (localPath is null)
+        {
+            return global;
+        }
+
+        var local = LoadFile(localPath);
+
+        foreach (var (id, entry) in local.Aspire.Resources)
+        {
+            global.Aspire.Resources[id] = entry;
+        }
+
+        return global;
+    }
+
+    public static string? FindLocalConfigFile(string? startDirectory = null)
+    {
+        var directory = startDirectory ?? Directory.GetCurrentDirectory();
+
+        while (directory is not null)
+        {
+            var candidate = Path.Combine(directory, LocalConfigFileName);
+
+            if (File.Exists(candidate))
+            {
+                return candidate;
+            }
+
+            if (Directory.Exists(Path.Combine(directory, ".git")))
+            {
+                break;
+            }
+
+            directory = Path.GetDirectoryName(directory);
+        }
+
+        return null;
+    }
+
+    internal static GlobalConfigFile LoadFile(string configPath)
+    {
         if (!File.Exists(configPath))
         {
             return new GlobalConfigFile();
