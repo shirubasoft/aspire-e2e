@@ -137,6 +137,146 @@ public class EmptyResourceGenerationSpecs
     }
 }
 
+public class MultipleResourceGenerationSpecs
+{
+    [Fact]
+    public void Generates_one_source_per_resource()
+    {
+        var json = """
+        [
+          { "Id": "apiservice", "Name": "ApiService", "Mode": "", "ProjectPath": "" },
+          { "Id": "webfrontend", "Name": "WebFrontend", "Mode": "", "ProjectPath": "" }
+        ]
+        """;
+
+        var generatedSource = RunGenerator(json);
+
+        Assert.Equal(2, generatedSource.Count);
+        Assert.Contains(generatedSource, s => s.Contains("AddApiService"));
+        Assert.Contains(generatedSource, s => s.Contains("AddWebFrontend"));
+    }
+
+    private static List<string> RunGenerator(string json)
+    {
+        var additionalText = new InMemoryAdditionalText("SharedResourceReferences.g.json", json);
+
+        var compilation = CSharpCompilation.Create("TestAssembly",
+            references: [MetadataReference.CreateFromFile(typeof(object).Assembly.Location)]);
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new SharedResourceGenerator())
+            .AddAdditionalTexts([additionalText]);
+
+        driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _, TestContext.Current.CancellationToken);
+
+        return driver.GetRunResult().GeneratedTrees
+            .Select(t => t.GetText(TestContext.Current.CancellationToken).ToString())
+            .ToList();
+    }
+}
+
+public class ProjectModeGenerationSpecs
+{
+    [Fact]
+    public void Generates_project_metadata_class_for_project_mode()
+    {
+        var json = """
+        [
+          { "Id": "apiservice", "Name": "ApiService", "Mode": "Project", "ProjectPath": "/src/ApiService/ApiService.csproj" }
+        ]
+        """;
+
+        var generatedSource = RunGenerator(json);
+
+        Assert.Single(generatedSource);
+        Assert.Contains("class ApiServiceProjectMetadata", generatedSource[0]);
+        Assert.Contains("IProjectMetadata", generatedSource[0]);
+        Assert.Contains("/src/ApiService/ApiService.csproj", generatedSource[0]);
+    }
+
+    [Fact]
+    public void Does_not_generate_project_metadata_when_mode_is_container()
+    {
+        var json = """
+        [
+          { "Id": "apiservice", "Name": "ApiService", "Mode": "Container", "ProjectPath": "" }
+        ]
+        """;
+
+        var generatedSource = RunGenerator(json);
+
+        Assert.Single(generatedSource);
+        Assert.DoesNotContain("ProjectMetadata", generatedSource[0]);
+    }
+
+    private static List<string> RunGenerator(string json)
+    {
+        var additionalText = new InMemoryAdditionalText("SharedResourceReferences.g.json", json);
+
+        var compilation = CSharpCompilation.Create("TestAssembly",
+            references: [MetadataReference.CreateFromFile(typeof(object).Assembly.Location)]);
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new SharedResourceGenerator())
+            .AddAdditionalTexts([additionalText]);
+
+        driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _, TestContext.Current.CancellationToken);
+
+        return driver.GetRunResult().GeneratedTrees
+            .Select(t => t.GetText(TestContext.Current.CancellationToken).ToString())
+            .ToList();
+    }
+}
+
+public class JsonEscapingSpecs
+{
+    [Fact]
+    public void Handles_backslashes_in_project_path()
+    {
+        var json = """
+        [
+          { "Id": "apiservice", "Name": "ApiService", "Mode": "Project", "ProjectPath": "C:\\src\\ApiService\\ApiService.csproj" }
+        ]
+        """;
+
+        var generatedSource = RunGenerator(json);
+
+        Assert.Single(generatedSource);
+        Assert.Contains("ApiService", generatedSource[0]);
+    }
+
+    [Fact]
+    public void Skips_entries_with_missing_id()
+    {
+        var json = """
+        [
+          { "Id": "", "Name": "NoId", "Mode": "", "ProjectPath": "" },
+          { "Id": "valid", "Name": "Valid", "Mode": "", "ProjectPath": "" }
+        ]
+        """;
+
+        var generatedSource = RunGenerator(json);
+
+        Assert.Single(generatedSource);
+        Assert.Contains("AddValid", generatedSource[0]);
+    }
+
+    private static List<string> RunGenerator(string json)
+    {
+        var additionalText = new InMemoryAdditionalText("SharedResourceReferences.g.json", json);
+
+        var compilation = CSharpCompilation.Create("TestAssembly",
+            references: [MetadataReference.CreateFromFile(typeof(object).Assembly.Location)]);
+
+        GeneratorDriver driver = CSharpGeneratorDriver.Create(new SharedResourceGenerator())
+            .AddAdditionalTexts([additionalText]);
+
+        driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out _, TestContext.Current.CancellationToken);
+
+        return driver.GetRunResult().GeneratedTrees
+            .Select(t => t.GetText(TestContext.Current.CancellationToken).ToString())
+            .ToList();
+    }
+}
+
 internal sealed class InMemoryAdditionalText(string path, string text) : AdditionalText
 {
     public override string Path => path;
