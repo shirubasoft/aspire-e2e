@@ -1,6 +1,7 @@
 <Solution>
 <Folder Name="/src/">
     <Project Path="src/Shirubasoft.Aspire.E2E.Cli/Shirubasoft.Aspire.E2E.Cli.csproj" />
+<Project Path="src/Shirubasoft.Aspire.E2E.Common/Shirubasoft.Aspire.E2E.Common.csproj" />
     <Project Path="src/Shirubasoft.Aspire.E2E.Hosting.Generator/Shirubasoft.Aspire.E2E.Hosting.Generator.csproj" />
     <Project Path="src/Shirubasoft.Aspire.E2E.Hosting/Shirubasoft.Aspire.E2E.Hosting.csproj" />
     <Project Path="src/Shirubasoft.Aspire.E2E/Shirubasoft.Aspire.E2E.csproj" />

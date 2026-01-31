@@ -15,4 +15,8 @@
     <PackageReference Include="CliWrap" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Shirubasoft.Aspire.E2E.Common\Shirubasoft.Aspire.E2E.Common.csproj" />
+  </ItemGroup>
+
 </Project>

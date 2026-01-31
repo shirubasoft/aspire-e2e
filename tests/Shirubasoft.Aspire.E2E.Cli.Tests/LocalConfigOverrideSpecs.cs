@@ -1,4 +1,5 @@
 using Shirubasoft.Aspire.E2E.Cli.GlobalConfig;
+using Shirubasoft.Aspire.E2E.Common;
 using Xunit;
 
 namespace Shirubasoft.Aspire.E2E.Cli.Tests;
@@ -27,7 +28,7 @@ public class LocalConfigOverrideSpecs : IDisposable
         // Create a .git dir so the walk stops here
         Directory.CreateDirectory(Path.Combine(_tempDir, ".git"));
 
-        var result = GlobalConfigFile.FindLocalConfigFile(_tempDir);
+        var result = ConfigPaths.FindLocalConfigFile(_tempDir);
 
         Assert.Null(result);
     }
@@ -36,10 +37,10 @@ public class LocalConfigOverrideSpecs : IDisposable
     public void FindLocalConfigFile_finds_file_in_start_directory()
     {
         Directory.CreateDirectory(Path.Combine(_tempDir, ".git"));
-        var configPath = Path.Combine(_tempDir, GlobalConfigFile.LocalConfigFileName);
+        var configPath = Path.Combine(_tempDir, ConfigPaths.LocalConfigFileName);
         File.WriteAllText(configPath, "{}");
 
-        var result = GlobalConfigFile.FindLocalConfigFile(_tempDir);
+        var result = ConfigPaths.FindLocalConfigFile(_tempDir);
 
         Assert.Equal(configPath, result);
     }
@@ -48,13 +49,13 @@ public class LocalConfigOverrideSpecs : IDisposable
     public void FindLocalConfigFile_walks_up_to_git_root()
     {
         Directory.CreateDirectory(Path.Combine(_tempDir, ".git"));
-        var configPath = Path.Combine(_tempDir, GlobalConfigFile.LocalConfigFileName);
+        var configPath = Path.Combine(_tempDir, ConfigPaths.LocalConfigFileName);
         File.WriteAllText(configPath, "{}");
 
         var subDir = Path.Combine(_tempDir, "src", "project");
         Directory.CreateDirectory(subDir);
 
-        var result = GlobalConfigFile.FindLocalConfigFile(subDir);
+        var result = ConfigPaths.FindLocalConfigFile(subDir);
 
         Assert.Equal(configPath, result);
     }
@@ -65,14 +66,14 @@ public class LocalConfigOverrideSpecs : IDisposable
         // Parent has a .git dir and the file, but child also has .git
         var parent = _tempDir;
         Directory.CreateDirectory(Path.Combine(parent, ".git"));
-        File.WriteAllText(Path.Combine(parent, GlobalConfigFile.LocalConfigFileName), "{}");
+        File.WriteAllText(Path.Combine(parent, ConfigPaths.LocalConfigFileName), "{}");
 
         var child = Path.Combine(parent, "child");
         Directory.CreateDirectory(child);
         Directory.CreateDirectory(Path.Combine(child, ".git"));
 
         // Starting from child, should stop at child's .git and not find the file
-        var result = GlobalConfigFile.FindLocalConfigFile(child);
+        var result = ConfigPaths.FindLocalConfigFile(child);
 
         Assert.Null(result);
     }

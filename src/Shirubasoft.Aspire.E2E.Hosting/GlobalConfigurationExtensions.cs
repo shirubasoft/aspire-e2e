@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Configuration;
+using Shirubasoft.Aspire.E2E.Common;
 
 namespace Aspire.Hosting;
 
@@ -7,25 +8,18 @@ namespace Aspire.Hosting;
 /// </summary>
 public static class GlobalConfigurationExtensions
 {
-    private static readonly string DefaultConfigPath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-        ".aspire-e2e",
-        "resources.json");
-
-    private const string LocalConfigFileName = "e2e-resources.json";
-
     public static IConfigurationBuilder AddGlobalResourceConfiguration(
         this IConfigurationBuilder builder,
         string? path = null)
     {
-        var configPath = path ?? DefaultConfigPath;
+        var configPath = path ?? ConfigPaths.DefaultConfigPath;
 
         if (File.Exists(configPath))
         {
             builder.AddJsonFile(configPath, optional: true, reloadOnChange: true);
         }
 
-        var localConfigPath = FindLocalConfigFile();
+        var localConfigPath = ConfigPaths.FindLocalConfigFile();
 
         if (localConfigPath is not null)
         {
@@ -33,29 +27,5 @@ public static class GlobalConfigurationExtensions
         }
 
         return builder;
-    }
-
-    private static string? FindLocalConfigFile()
-    {
-        var directory = Directory.GetCurrentDirectory();
-
-        while (directory is not null)
-        {
-            var candidate = Path.Combine(directory, LocalConfigFileName);
-
-            if (File.Exists(candidate))
-            {
-                return candidate;
-            }
-
-            if (Directory.Exists(Path.Combine(directory, ".git")))
-            {
-                break;
-            }
-
-            directory = Path.GetDirectoryName(directory);
-        }
-
-        return null;
     }
 }
