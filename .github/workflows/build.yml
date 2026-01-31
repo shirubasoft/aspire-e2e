@@ -25,10 +25,6 @@ jobs:
       - run: dotnet restore -p:UseProjectReferences=true
       - run: dotnet build --no-restore -c Release -p:UseProjectReferences=true
 
-      # Build Debug config for project-mode integration tests (Aspire launches projects with Debug)
-      - run: dotnet build -c Debug -p:UseProjectReferences=true sample/sample.ApiService/sample.ApiService.csproj
-      - run: dotnet build -c Debug -p:UseProjectReferences=true sample/sample.Web/sample.Web.csproj
-
       # Install the CLI so the AppHost MSBuild targets can resolve resources
       - name: Install CLI from local build
         run: ./use-cli.sh local
@@ -39,9 +35,5 @@ jobs:
           mkdir -p ~/.aspire-e2e
           PROJECT_PATH="$(pwd)/sample/sample.ApiService/sample.ApiService.csproj"
           echo "{\"Aspire\":{\"Resources\":{\"sample-apiservice\":{\"Id\":\"sample-apiservice\",\"Name\":\"SampleApiService\",\"Mode\":\"Container\",\"ContainerImage\":\"sample-apiservice\",\"ContainerTag\":\"latest\",\"ProjectPath\":\"$PROJECT_PATH\",\"BuildImage\":true,\"BuildImageCommand\":\"dotnet publish --os linux --arch x64 /t:PublishContainer\"}}}}" > ~/.aspire-e2e/resources.json
-
-      # Build the container image for container mode tests
-      - name: Build container image
-        run: aspire-e2e build sample-apiservice --force
 
       - run: dotnet test --no-build -c Release -p:UseProjectReferences=true
