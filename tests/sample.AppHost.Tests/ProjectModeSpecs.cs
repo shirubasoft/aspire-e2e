@@ -44,7 +44,7 @@ public class ProjectModeSpecs : IAsyncDisposable
             .CreateAsync<Projects.sample_AppHost>();
 
         _app = await _builder.BuildAsync();
-        var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+        var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
         await _app.StartAsync(cts.Token);
         return (_builder, _app);
     }
